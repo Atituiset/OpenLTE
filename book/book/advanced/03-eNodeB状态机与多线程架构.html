@@ -1,0 +1,503 @@
+<!DOCTYPE HTML>
+<html lang="zh-CN" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>eNodeB 状态机与多线程架构 - OpenLTE 源码精读：从入门到进阶</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">OpenLTE 源码精读：从入门到进阶</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/mgp25/OpenLTE" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="enodeb-状态机与多线程架构"><a class="header" href="#enodeb-状态机与多线程架构">eNodeB 状态机与多线程架构</a></h1>
+<p>入门级部分我们逐层读了 PHY/MAC/RLC/PDCP 的编解码。这一章换一个视角：把 <code>LTE_fdd_enodeb</code> 当作一个普通的并发服务器进程来解剖——它有哪些线程、线程之间怎么通信、控制面（RRC/EMM）的状态机挂在哪个对象上。读完这一章，给你任意一条信令（比如 Attach Request），你应该能自己把它在代码里从比特流一直追到 HSS 再追回来。</p>
+<p>本章是全书的枢纽：前面各章讲的"每一层干什么"，在这里被一条消息队列总线串成了"整个进程怎么转"。</p>
+<h2 id="进程启动main-里发生了什么"><a class="header" href="#进程启动main-里发生了什么">进程启动：main 里发生了什么</a></h2>
+<p><code>LTE_fdd_enodeb/src/LTE_fdd_enb_main.cc</code> 的 <code>main()</code> 只有不到 25 行有效代码（<code>LTE_fdd_enb_main.cc:61-83</code>）：</p>
+<pre><code class="language-cpp">LTE_fdd_enb_interface *interface = LTE_fdd_enb_interface::get_instance();
+LTE_fdd_enb_cnfg_db   *cnfg_db   = LTE_fdd_enb_cnfg_db::get_instance();
+LTE_fdd_enb_hss       *hss       = LTE_fdd_enb_hss::get_instance();
+
+interface-&gt;set_ctrl_port(LTE_FDD_ENB_DEFAULT_CTRL_PORT);
+interface-&gt;start_ports();
+
+// Read configuration
+hss-&gt;read_user_file();
+cnfg_db-&gt;read_cnfg_file();
+</code></pre>
+<p>逐行看（<code>LTE_fdd_enb_main.cc:63-72</code>）：</p>
+<ol>
+<li>三个 <code>get_instance()</code> 拿出全进程最早存在的三个 Singleton：<code>interface</code>（对外控制/调试接口）、<code>cnfg_db</code>（配置数据库）、<code>hss</code>（本地用户数据库）。注意此刻<strong>协议栈一层都还没起来</strong>。</li>
+<li><code>start_ports()</code> 打开两个 TCP server socket：控制端口和调试端口（<code>LTE_fdd_enb_interface.cc:234-277</code>）。你之后 <code>telnet localhost 30000</code> 敲的 <code>start</code>、<code>write bandwidth 10</code> 这些命令，都是进到这个 socket 里的。</li>
+<li><code>hss-&gt;read_user_file()</code>（<code>LTE_fdd_enb_hss.cc:506</code>）读用户文件（IMSI/IMEI/K 三元组），<code>cnfg_db-&gt;read_cnfg_file()</code>（<code>LTE_fdd_enb_cnfg_db.cc:959</code>）读配置文件。</li>
+<li>最后 <code>main</code> 进入 <code>while(!interface-&gt;get_shutdown()) sleep(1);</code> 的空转循环（<code>LTE_fdd_enb_main.cc:77-80</code>）。主线程从此只是个看门人，真正的戏都在别的线程里。</li>
+</ol>
+<p>真正的协议栈启动发生在你在控制端口敲下 <code>start</code> 命令之后。控制消息由 <code>handle_ctrl_msg()</code>（<code>LTE_fdd_enb_interface.cc:690</code>）分发到 <code>handle_start()</code>（<code>LTE_fdd_enb_interface.cc:971</code>），它干了三件大事：</p>
+<p><strong>第一件：创建 13 条消息队列</strong>（<code>LTE_fdd_enb_interface.cc:992-1004</code>）。每一对相邻模块之间一条单向队列，名字直白得像管道名：</p>
+<pre><code class="language-cpp">phy_to_mac_comm   = new LTE_fdd_enb_msgq("phy_to_mac");
+mac_to_phy_comm   = new LTE_fdd_enb_msgq("mac_to_phy");
+mac_to_rlc_comm   = new LTE_fdd_enb_msgq("mac_to_rlc");
+mac_to_timer_comm = new LTE_fdd_enb_msgq("mac_to_timer");
+rlc_to_mac_comm   = new LTE_fdd_enb_msgq("rlc_to_mac");
+rlc_to_pdcp_comm  = new LTE_fdd_enb_msgq("rlc_to_pdcp");
+pdcp_to_rlc_comm  = new LTE_fdd_enb_msgq("pdcp_to_rlc");
+pdcp_to_rrc_comm  = new LTE_fdd_enb_msgq("pdcp_to_rrc");
+rrc_to_pdcp_comm  = new LTE_fdd_enb_msgq("rrc_to_pdcp");
+rrc_to_mme_comm   = new LTE_fdd_enb_msgq("rrc_to_mme");
+mme_to_rrc_comm   = new LTE_fdd_enb_msgq("mme_to_rrc");
+pdcp_to_gw_comm   = new LTE_fdd_enb_msgq("pdcp_to_gw");
+gw_to_pdcp_comm   = new LTE_fdd_enb_msgq("gw_to_pdcp");
+</code></pre>
+<p><strong>第二件：构造三个非 Singleton 的模块</strong>——<code>pdcp</code>、<code>mme</code>、<code>gw</code>（<code>LTE_fdd_enb_interface.cc:1007-1009</code>），然后 <code>cnfg_db-&gt;construct_sys_info(pdcp, mme)</code> 把 SIB1/SIB2/... 全部组出来（<code>LTE_fdd_enb_cnfg_db.cc:426</code>），并在末尾回调每一层的 <code>update_sys_info()</code> 把系统信息推下去（<code>LTE_fdd_enb_cnfg_db.cc:944-949</code>）。</p>
+<p><strong>第三件：按自顶向下再到底层的顺序 start 各层</strong>（<code>LTE_fdd_enb_interface.cc:1015-1028</code>）：<code>gw</code> → <code>phy</code> → <code>mac</code> → <code>timer_mgr</code> → <code>rlc</code> → <code>pdcp</code> → <code>rrc</code> → <code>mme</code> → <code>radio</code>。每个 <code>start()</code> 做的事高度同构，以 RRC 为例（<code>LTE_fdd_enb_rrc.cc:141-163</code>）：保存队列指针，然后对两条输入队列各调一次 <code>attach_rx()</code>——<strong>每调一次 <code>attach_rx</code> 就 <code>pthread_create</code> 出一条接收线程</strong>（<code>LTE_fdd_enb_msgq.cc:121-135</code>）。所以这个进程的并发模型是：<strong>一条消息队列 = 一条专属消费线程</strong>，模块本身几乎不持有线程（例外是 GW 的 socket 收包线程 <code>LTE_fdd_enb_gw.cc:184</code> 和 Radio 的采样线程 <code>LTE_fdd_enb_radio.cc:1161</code>）。</p>
+<p>模块关系全景图（箭头是消息队列的方向）：</p>
+<pre><code>                 控制/调试 TCP 端口
+                        │
+                 ┌──────┴───────┐          ┌──────────┐
+                 │  interface   │─────────▶│ cnfg_db  │ (SIB 组包/参数)
+                 └──────┬───────┘          └──────────┘
+                        │ start                     ┌──────────┐
+ ┌────────┐   gw_to_pdcp│                           │   HSS    │ (IMSI/K 数据库)
+ │  GW    │◀════════════╪═══════════╗               └─────▲────┘
+ │ (IP 出口)│           │           ║        直接查询        │
+ └────────┘   pdcp_to_gw│           ║               ┌──────┴───────┐
+                        ▼           ║               │     MME      │ EMM 状态机
+ ┌─────────────────────────────────╪──────┐        │  (NAS/attach) │
+ │ PHY ⇄ MAC ⇄ RLC ⇄ PDCP ⇄ RRC   ║      │        └──────▲───────┘
+ └─────────────────────────────────╪──────┘   rrc_to_mme / mme_to_rrc
+                        │           ╚═══════════════════════╝
+                  mac_to_timer
+                        ▼
+                  ┌──────────┐
+                  │timer_mgr │ (T3xx/t-poll/不活动定时器)
+                  └──────────┘
+</code></pre>
+<p>你要建立的直觉是：<strong>interface 是总线装配车间，各层是流水线上的工位，msgq 是传送带</strong>。这个模型你其实早就见过——它就是把"分层网络协议栈"硬套在"生产者-消费者线程模型"上。</p>
+<h2 id="消息队列msgq-封装与消息类型"><a class="header" href="#消息队列msgq-封装与消息类型">消息队列：msgq 封装与消息类型</a></h2>
+<h3 id="一条队列的实现"><a class="header" href="#一条队列的实现">一条队列的实现</a></h3>
+<p><code>LTE_fdd_enb_msgq</code>（<code>LTE_fdd_enodeb/hdr/LTE_fdd_enb_msgq.h:400-433</code>）的实现朴素得出乎意料：一个 <code>boost::circular_buffer</code>（容量 100，<code>LTE_fdd_enb_msgq.cc:95</code>）加两个 POSIX 信号量。发送侧（<code>LTE_fdd_enb_msgq.cc:140-158</code>）：</p>
+<pre><code class="language-cpp">msg.type       = type;
+msg.dest_layer = dest_layer;
+if(msg_content != NULL)
+{
+    memcpy(&amp;msg.msg, msg_content, msg_content_size);
+}
+
+sem_wait(&amp;sync_sem);
+circ_buf-&gt;push_back(msg);
+sem_post(&amp;sync_sem);
+sem_post(&amp;msg_sem);
+</code></pre>
+<ul>
+<li><code>sync_sem</code> 保护环形缓冲区的互斥访问；</li>
+<li><code>msg_sem</code> 是"有消息了"的事件信号——接收线程在 <code>receive_thread()</code> 里 <code>sem_wait(&amp;msgq-&gt;msg_sem)</code> 阻塞等待（<code>LTE_fdd_enb_msgq.cc:207</code>），被唤醒后清空缓冲区，逐条回调 <code>msgq-&gt;callback(msg)</code>（<code>LTE_fdd_enb_msgq.cc:211-226</code>）。</li>
+</ul>
+<p>两个值得注意的细节：</p>
+<ul>
+<li><strong>收到 <code>LTE_FDD_ENB_MESSAGE_TYPE_KILL</code> 就退出线程循环</strong>（<code>LTE_fdd_enb_msgq.cc:220-222</code>）。停机时 <code>handle_stop()</code> 给全部 13 条队列各发一条 KILL（<code>LTE_fdd_enb_interface.cc:1085-1136</code>），这是整个进程的"安全停机"机制。</li>
+<li>接收线程会把自己的 CPU 亲和性设置为"避开最后一个核"（<code>LTE_fdd_enb_msgq.cc:199-202</code>），注释写明最后一个核留给 PHY/Radio——实时信号处理要独占一个核，这是 SDR 系统的常见手法。</li>
+</ul>
+<h3 id="消息信封type--dest_layer--union"><a class="header" href="#消息信封type--dest_layer--union">消息信封：type + dest_layer + union</a></h3>
+<p>所有消息共用同一个信封结构（<code>LTE_fdd_enb_msgq.h:372-376</code>）：</p>
+<pre><code class="language-cpp">typedef struct{
+    LTE_FDD_ENB_MESSAGE_TYPE_ENUM type;
+    LTE_FDD_ENB_DEST_LAYER_ENUM   dest_layer;
+    LTE_FDD_ENB_MESSAGE_UNION     msg;
+}LTE_FDD_ENB_MESSAGE_STRUCT;
+</code></pre>
+<p><code>dest_layer</code> 是目的层（PHY/MAC/RLC/PDCP/RRC/MME/GW/TIMER_MGR/ANY，枚举在 <code>LTE_fdd_enb_msgq.h:150-161</code>）。每个模块的入口函数第一件事就是检查 <code>dest_layer</code>：是自己的就处理，不是自己的就<strong>原样转发给下一个模块</strong>——比如 RRC 的 <code>handle_pdcp_msg()</code> 里，dest 不是 RRC 的消息直接 <code>msgq_to_mme-&gt;send(msg)</code> 转发（<code>LTE_fdd_enb_rrc.cc:196-199</code>）。这就是为什么 NAS 消息能"穿过"RRC 到达 MME 而不被 RRC 拆开。</p>
+<p>消息类型全集（<code>LTE_fdd_enb_msgq.h:80-129</code>），按流向整理：</p>
+<div class="table-wrapper"><table><thead><tr><th>消息类型</th><th>流向</th><th>载荷里有什么</th></tr></thead><tbody>
+<tr><td><code>KILL</code></td><td>任意</td><td>空；停机信号</td></tr>
+<tr><td><code>PHY_SCHEDULE</code></td><td>MAC→PHY</td><td>本 TTI 的 DL/UL 调度结果（PDCCH 分配）</td></tr>
+<tr><td><code>READY_TO_SEND</code></td><td>PHY→MAC</td><td>当前 TTI，触发 MAC 做调度</td></tr>
+<tr><td><code>PRACH_DECODE</code></td><td>PHY→MAC</td><td>检到的 preamble + 定时提前量</td></tr>
+<tr><td><code>PUCCH_DECODE</code></td><td>PHY→MAC</td><td>ACK/NACK 或 SR</td></tr>
+<tr><td><code>PUSCH_DECODE</code></td><td>PHY→MAC</td><td>上行比特流 + RNTI</td></tr>
+<tr><td><code>MAC_SDU_READY</code></td><td>RLC→MAC</td><td>（user, rb）指针对</td></tr>
+<tr><td><code>RLC_PDU_READY</code></td><td>MAC→RLC</td><td>（user, rb）指针对</td></tr>
+<tr><td><code>TIMER_TICK</code></td><td>MAC→TIMER_MGR</td><td>1ms 滴答</td></tr>
+<tr><td><code>RLC_SDU_READY</code></td><td>PDCP→RLC</td><td>（user, rb）指针对</td></tr>
+<tr><td><code>PDCP_PDU_READY</code></td><td>RLC→PDCP</td><td>（user, rb）指针对</td></tr>
+<tr><td><code>PDCP_SDU_READY</code></td><td>RRC→PDCP</td><td>（user, rb）指针对</td></tr>
+<tr><td><code>RRC_PDU_READY</code></td><td>PDCP→RRC</td><td>（user, rb）指针对</td></tr>
+<tr><td><code>RRC_NAS_MSG_READY</code></td><td>MME→RRC</td><td>（user, rb）；下行 NAS 已入队</td></tr>
+<tr><td><code>RRC_CMD_READY</code></td><td>MME→RRC</td><td>（user, rb, cmd）；cmd 枚举见下</td></tr>
+<tr><td><code>MME_NAS_MSG_READY</code></td><td>RRC→MME</td><td>（user, rb）；上行 NAS 已入队</td></tr>
+<tr><td><code>MME_RRC_CMD_RESP</code></td><td>RRC→MME</td><td>（user, rb, cmd_resp）</td></tr>
+<tr><td><code>PDCP_DATA_SDU_READY</code></td><td>GW→PDCP</td><td>用户面下行 IP 包</td></tr>
+<tr><td><code>GW_DATA_READY</code></td><td>PDCP→GW</td><td>用户面上行 IP 包</td></tr>
+</tbody></table>
+</div>
+<p>注意一个贯穿始终的设计惯例：<strong>MAC 以上的 <code>*_READY</code> 系列消息本身不带数据，只带 <code>(user, rb)</code> 两个指针</strong>（PHY→MAC 的解码消息例外，比特流直接装在消息里）。数据在哪？在 <code>rb</code> 对象内部的队列里——发送方先 <code>rb-&gt;queue_rrc_pdu(...)</code> 把数据塞进 rb，再发消息"通知"对端来取；接收方 <code>rb-&gt;get_next_rrc_pdu(&amp;pdu)</code> 取出。你熟悉的"队列里传 buffer"在这里变成了"队列里传句柄，buffer 挂在句柄上"。好处是消息定长、memcpy 一次搞定；代价是 user/rb 对象被所有线程共享，靠 rb 内部的信号量保护。</p>
+<p><code>RRC_CMD_READY</code> 里的命令枚举（<code>LTE_fdd_enb_msgq.h:279-285</code>）是 MME 指挥 RRC 的四条指令：<code>RELEASE</code>（释放连接）、<code>SECURITY</code>（起 RRC 安全）、<code>SETUP_DEF_DRB</code>（建默认承载）、<code>SETUP_DED_DRB</code>（建专用承载）。</p>
+<h2 id="rrc-状态机"><a class="header" href="#rrc-状态机">RRC 状态机</a></h2>
+<h3 id="状态枚举"><a class="header" href="#状态枚举">状态枚举</a></h3>
+<p>OpenLTE 的 RRC 状态<strong>不是全局的，而是挂在每个 UE 的每条 Radio Bearer（rb）对象上</strong>。枚举定义在 <code>LTE_fdd_enodeb/hdr/LTE_fdd_enb_rb.h:152-158</code>：</p>
+<div class="table-wrapper"><table><thead><tr><th>状态</th><th>含义</th><th>类比</th></tr></thead><tbody>
+<tr><td><code>IDLE</code></td><td>尚无 RRC 连接</td><td>TCP 的 CLOSED/LISTEN</td></tr>
+<tr><td><code>SRB1_SETUP</code></td><td>已收到 ConnectionRequest，SRB1 建好了</td><td>SYN_RCVD 的前半拍</td></tr>
+<tr><td><code>WAIT_FOR_CON_SETUP_COMPLETE</code></td><td>已发 RRCConnectionSetup，等 UE 回 Complete</td><td>SYN_RCVD</td></tr>
+<tr><td><code>RRC_CONNECTED</code></td><td>RRC 连接建立</td><td>ESTABLISHED</td></tr>
+<tr><td><code>WAIT_FOR_CON_REEST_COMPLETE</code></td><td>重建流程中，等 ReestablishmentComplete</td><td>类似 TCP 的重连恢复</td></tr>
+</tbody></table>
+</div>
+<p>配套的还有"过程"枚举 <code>LTE_FDD_ENB_RRC_PROC_ENUM</code>（<code>LTE_fdd_enb_rb.h:142-146</code>）：<code>IDLE</code> / <code>RRC_CON_REQ</code> / <code>RRC_CON_REEST_REQ</code>。"过程 + 状态"两维合起来才是完整的状态机位置——这和你写 Web 服务器时"连接状态 + 当前在处理哪个请求"是同一个套路。</p>
+<h3 id="两条入口状态机ccch_sm-与-dcch_sm"><a class="header" href="#两条入口状态机ccch_sm-与-dcch_sm">两条入口状态机：ccch_sm 与 dcch_sm</a></h3>
+<p>RRC 收到 PDU 后按承载分流（<code>LTE_fdd_enb_rrc.cc:259-267</code>）：SRB0 走 <code>ccch_sm()</code>，SRB1/SRB2 走 <code>dcch_sm()</code>。</p>
+<p><strong><code>ccch_sm()</code>（<code>LTE_fdd_enb_rrc.cc:434-510</code>）</strong> 处理连接建立。核心迁移在 <code>LTE_fdd_enb_rrc.cc:448-457</code>：</p>
+<pre><code class="language-cpp">case LTE_FDD_ENB_RRC_PROC_RRC_CON_REQ:
+    switch(loc_rb-&gt;get_rrc_state())
+    {
+    case LTE_FDD_ENB_RRC_STATE_IDLE:
+        loc_user-&gt;setup_srb1(&amp;srb1);
+        if(NULL != srb1)
+        {
+            loc_rb-&gt;set_rrc_state(LTE_FDD_ENB_RRC_STATE_SRB1_SETUP);
+            send_rrc_con_setup(loc_user, loc_rb);
+            srb1-&gt;set_rrc_procedure(LTE_FDD_ENB_RRC_PROC_RRC_CON_REQ);
+            srb1-&gt;set_rrc_state(LTE_FDD_ENB_RRC_STATE_WAIT_FOR_CON_SETUP_COMPLETE);
+</code></pre>
+<p>即：SRB0 上收到 RRCConnectionRequest 且当前 IDLE → 建 SRB1 → SRB0 转 <code>SRB1_SETUP</code> → 发 RRCConnectionSetup（<code>send_rrc_con_setup()</code>，<code>LTE_fdd_enb_rrc.cc:1010</code>，消息字段按 36.331 组包，还会顺便给 UE 配 SR 的 PUCCH 资源，<code>LTE_fdd_enb_rrc.cc:1043-1045</code>）→ 新的 SRB1 转入 <code>WAIT_FOR_CON_SETUP_COMPLETE</code>。注意状态是<strong>记录在 SRB0 和 SRB1 两条 rb 上</strong>的，接力棒从 SRB0 交到 SRB1。重建请求走对称的另一支（<code>LTE_fdd_enb_rrc.cc:476-486</code>），失败则发 ReestablishmentReject。</p>
+<p><strong><code>dcch_sm()</code>（<code>LTE_fdd_enb_rrc.cc:511-546</code>）</strong> 处理已建立连接后的消息。它只在 <code>WAIT_FOR_CON_SETUP_COMPLETE</code> / <code>WAIT_FOR_CON_REEST_COMPLETE</code> / <code>RRC_CONNECTED</code> 三个状态下受理消息（<code>LTE_fdd_enb_rrc.cc:521-526</code>），然后转给 <code>parse_ul_dcch_message()</code>。</p>
+<p>真正的状态推进在 <strong><code>parse_ul_dcch_message()</code>（<code>LTE_fdd_enb_rrc.cc:631-724</code>）</strong>，关键的三个分支：</p>
+<ul>
+<li>收到 RRCConnectionSetupComplete：<code>rb-&gt;set_rrc_state(LTE_FDD_ENB_RRC_STATE_RRC_CONNECTED)</code>（<code>LTE_fdd_enb_rrc.cc:657</code>），同时把消息里捎带的 NAS（就是 Attach Request）<code>queue_mme_nas_msg()</code> 入队，并发 <code>MME_NAS_MSG_READY</code> 给 MME（<code>LTE_fdd_enb_rrc.cc:660-668</code>）。<strong>RRC 层到此为止，接力棒交给 MME。</strong></li>
+<li>收到 ULInformationTransfer（后续所有上行 NAS 的载体）：同样入队 + 通知 MME（<code>LTE_fdd_enb_rrc.cc:670-682</code>）。<strong>RRC 对 NAS 永远只当搬运工，从不拆包</strong>——这就是 36.331 里 dedicatedInfoNAS 字段的"透传"语义。</li>
+<li>收到 SecurityModeComplete：发 <code>MME_RRC_CMD_RESP</code> 告知 MME"你要的 RRC 安全建好了"（<code>LTE_fdd_enb_rrc.cc:693-701</code>）。</li>
+</ul>
+<p>下行方向，MME 通过两类消息驱动 RRC（<code>handle_mme_msg()</code>，<code>LTE_fdd_enb_rrc.cc:201-227</code>）：</p>
+<ul>
+<li><code>RRC_NAS_MSG_READY</code> → <code>handle_nas_msg()</code>（<code>LTE_fdd_enb_rrc.cc:294</code>）→ <code>send_dl_info_transfer()</code>（<code>LTE_fdd_enb_rrc.cc:729</code>）：把 NAS 包进 DLInformationTransfer，经 <code>PDCP_SDU_READY</code> 发给 PDCP。</li>
+<li><code>RRC_CMD_READY</code> → <code>handle_cmd()</code>（<code>LTE_fdd_enb_rrc.cc:322</code>）：<code>RELEASE</code> 发 RRCConnectionRelease（<code>LTE_fdd_enb_rrc.cc:977</code>）；<code>SECURITY</code> 发 UECapabilityEnquiry + SecurityModeCommand（<code>LTE_fdd_enb_rrc.cc:343-346</code>）；<code>SETUP_DEF_DRB</code> 建 SRB2+DRB1 后发 RRCConnectionReconfiguration，并把 MME 已入队的 NAS（Attach Accept）捎带进去（<code>LTE_fdd_enb_rrc.cc:347-370</code>）。</li>
+</ul>
+<h2 id="emm-状态机与-mme-模块"><a class="header" href="#emm-状态机与-mme-模块">EMM 状态机与 MME 模块</a></h2>
+<p>MME 模块（<code>LTE_fdd_enodeb/src/LTE_fdd_enb_mme.cc</code>）是这个进程里的"迷你核心网"：EMM 状态机、鉴权、IP 分配都在这。它的 EMM 状态同样挂在 rb 上，枚举在 <code>LTE_fdd_enb_rb.h:112-125</code>：</p>
+<div class="table-wrapper"><table><thead><tr><th>状态</th><th>含义</th></tr></thead><tbody>
+<tr><td><code>IDLE</code></td><td>初始态</td></tr>
+<tr><td><code>ID_REQUEST_IMSI</code></td><td>UE 报的 GUTI 本地不认识，发 Identity Request 要 IMSI</td></tr>
+<tr><td><code>REJECT</code></td><td>拒绝（IMSI 不在 HSS / 安全能力不匹配）</td></tr>
+<tr><td><code>AUTHENTICATE</code></td><td>发 Authentication Request</td></tr>
+<tr><td><code>AUTH_REJECTED</code></td><td>鉴权失败，发 Authentication Reject</td></tr>
+<tr><td><code>ENABLE_SECURITY</code></td><td>鉴权通过，发 NAS Security Mode Command</td></tr>
+<tr><td><code>RRC_SECURITY</code></td><td>NAS 安全完成，命令 RRC 起 AS 安全</td></tr>
+<tr><td><code>RELEASE</code></td><td>命令 RRC 释放连接</td></tr>
+<tr><td><code>ESM_INFO_TRANSFER</code></td><td>可选：向 UE 要 APN/PCO</td></tr>
+<tr><td><code>ATTACH_ACCEPT</code></td><td>发 Attach Accept（内含默认承载激活）</td></tr>
+<tr><td><code>SETUP_DRB</code></td><td>Service Request 流程里建承载</td></tr>
+<tr><td><code>ATTACHED</code></td><td>附着完成</td></tr>
+<tr><td><code>SEND_DETACH_ACCEPT</code></td><td>Detach 流程</td></tr>
+</tbody></table>
+</div>
+<p>MME 的消息入口是 <code>handle_nas_msg()</code>（<code>LTE_fdd_enb_mme.cc:180</code>）：先 <code>liblte_mme_parse_msg_header()</code> 取出 NAS 消息类型（<code>LTE_fdd_enb_mme.cc:198</code>），按类型分派给 <code>parse_attach_request</code> / <code>parse_authentication_response</code> / <code>parse_security_mode_complete</code> 等一大堆 parse 函数（<code>LTE_fdd_enb_mme.cc:199-365</code>）；parse 函数只负责<strong>改状态</strong>（<code>set_mme_state(...)</code>），随后统一按"过程"调对应的状态机函数 <code>attach_sm()</code> / <code>service_req_sm()</code> / <code>detach_sm()</code>（<code>LTE_fdd_enb_mme.cc:374-383</code>）执行<strong>动作</strong>（发消息）。这个"parse 改状态、sm 执行动作"的两段式结构非常清晰，值得学。</p>
+<p><code>attach_sm()</code>（<code>LTE_fdd_enb_mme.cc:1183-1233</code>）就是一张纯粹的"状态 → 发送函数"映射表：</p>
+<pre><code class="language-cpp">case LTE_FDD_ENB_MME_STATE_AUTHENTICATE:
+    send_authentication_request(user, rb);
+    break;
+...
+case LTE_FDD_ENB_MME_STATE_RRC_SECURITY:
+    send_rrc_command(user, rb, LTE_FDD_ENB_RRC_CMD_SECURITY);
+    break;
+case LTE_FDD_ENB_MME_STATE_ATTACH_ACCEPT:
+    send_attach_accept(user, rb);
+    break;
+</code></pre>
+<h3 id="attach-request-的处理链"><a class="header" href="#attach-request-的处理链">Attach Request 的处理链</a></h3>
+<p>以 IMSI 方式 attach 为例，<code>parse_attach_request()</code>（<code>LTE_fdd_enb_mme.cc:489-657</code>）依次做：</p>
+<ol>
+<li>解包 NAS（<code>liblte_mme_unpack_attach_request_msg</code>，<code>LTE_fdd_enb_mme.cc:512</code>），把内嵌的 ESM 消息（PDN Connectivity Request）也解析掉（<code>LTE_fdd_enb_mme.cc:515-519</code>）。</li>
+<li>把 rb 的 MME 过程置为 <code>ATTACH</code>（<code>LTE_fdd_enb_mme.cc:532</code>），存下 UE 的 EEA/EIA 安全能力（<code>LTE_fdd_enb_mme.cc:538-542</code>）。</li>
+<li><strong>查 HSS</strong>：<code>hss-&gt;is_imsi_allowed(imsi_num)</code>（<code>LTE_fdd_enb_mme.cc:614</code>，实现就是遍历本地用户链表，<code>LTE_fdd_enb_hss.cc:224-240</code>）。没有 S6a 接口、没有真实 HSS——就是一个内存数据库，你在控制端口 <code>add_user</code> 加进去的三元组就在这。</li>
+<li>查到了且 UE 支持 EEA0/EIA2：<code>set_mme_state(AUTHENTICATE)</code> 并从 HSS 取出用户身份 <code>set_id(hss-&gt;get_user_id_from_imsi(imsi_num))</code>（<code>LTE_fdd_enb_mme.cc:616-619</code>）；查不到就 <code>REJECT</code>（<code>LTE_fdd_enb_mme.cc:624-627</code>）。</li>
+</ol>
+<p>随后 <code>attach_sm</code> 在 <code>AUTHENTICATE</code> 态调 <code>send_authentication_request()</code>（<code>LTE_fdd_enb_mme.cc:1472</code>）：先 <code>hss-&gt;generate_security_data(...)</code> 用 Milenage f1/f2345 算出 RAND/AUTN/XRES/KASME 一 whole 鉴权向量（<code>LTE_fdd_enb_mme.cc:1483-1485</code>，Milenage 实现在 <code>LTE_fdd_enb_hss.cc:327-332</code>，算法对应 35.206，鉴权框架见 33.401），打包 Authentication Request 后经 <code>RRC_NAS_MSG_READY</code> 发回 RRC（<code>LTE_fdd_enb_mme.cc:1506-1514</code>）。</p>
+<p>之后的状态迁移链：</p>
+<ul>
+<li>UE 回 Authentication Response → <code>parse_authentication_response()</code>（<code>LTE_fdd_enb_mme.cc:694</code>）比对 XRES，通过则转 <code>ENABLE_SECURITY</code>（<code>LTE_fdd_enb_mme.cc:742</code>）→ 发 NAS Security Mode Command。</li>
+<li>UE 回 NAS 层 Security Mode Complete → <code>parse_security_mode_complete()</code>（<code>LTE_fdd_enb_mme.cc:883</code>）转 <code>RRC_SECURITY</code>（<code>LTE_fdd_enb_mme.cc:935</code>）→ <code>attach_sm</code> 发 <code>RRC_CMD_SECURITY</code> 命令 RRC 起 AS 安全。</li>
+<li>UE 回 RRC 层 SecurityMode Complete → RRC 回 <code>MME_RRC_CMD_RESP</code> → <code>handle_rrc_cmd_resp()</code>（<code>LTE_fdd_enb_mme.cc:402</code>）转 <code>ATTACH_ACCEPT</code>（或先 <code>ESM_INFO_TRANSFER</code>，<code>LTE_fdd_enb_mme.cc:409-417</code>）。</li>
+<li><code>send_attach_accept()</code>（<code>LTE_fdd_enb_mme.cc:1284</code>）：分配 IP（<code>get_next_ip_addr()</code>，<code>LTE_fdd_enb_mme.cc:1889</code>）、组 GUTI、把"Activate Default EPS Bearer Context Request"嵌进 Attach Accept（<code>LTE_fdd_enb_mme.cc:1343-1344</code>，消息格式见 24.301），入队后经 <code>RRC_CMD_SETUP_DEF_DRB</code> 发给 RRC（<code>LTE_fdd_enb_mme.cc:1394-1398</code>）——RRC 那边建 SRB2+DRB1 并把这条 NAS 捎进 RRCConnectionReconfiguration。</li>
+<li>UE 回 Attach Complete → <code>parse_attach_complete()</code>（<code>LTE_fdd_enb_mme.cc:447</code>）转 <code>ATTACHED</code>（<code>LTE_fdd_enb_mme.cc:470</code>），再补一条 EMM Information。收工。</li>
+</ul>
+<h2 id="端到端调用流一次-attach-的每一跳"><a class="header" href="#端到端调用流一次-attach-的每一跳">端到端调用流：一次 Attach 的每一跳</a></h2>
+<p>下面是从空口比特到 HSS 再回来的完整跳数表，每一跳都给了代码位置。这是你日后追任何信令的"标准追法"：先定位它走的是哪条 msgq，再找两端模块的 handler。</p>
+<p><strong>上行（UE → eNodeB 内部）：</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>跳</th><th>位置</th><th>干了什么</th></tr></thead><tbody>
+<tr><td>1</td><td><code>LTE_fdd_enb_phy.cc:911-925</code></td><td>PUSCH 信道解码成功，发 <code>PUSCH_DECODE</code> 给 MAC</td></tr>
+<tr><td>2</td><td><code>LTE_fdd_enb_mac.cc:605-664</code></td><td><code>handle_pusch_decode()</code>：按 RNTI 找 user，解 MAC PDU，按 LCID 分流 CCCH/DCCH SDU</td></tr>
+<tr><td>3</td><td><code>LTE_fdd_enb_mac.cc:805-813</code></td><td>SDU 入 rb 队列，发 <code>RLC_PDU_READY</code> 给 RLC</td></tr>
+<tr><td>4</td><td><code>LTE_fdd_enb_rlc.cc:264-312</code></td><td><code>handle_pdu_ready()</code>：按 TM/UM/AM 配置处理</td></tr>
+<tr><td>5</td><td><code>LTE_fdd_enb_rlc.cc:319-328</code></td><td>PDU 入队，发 <code>PDCP_PDU_READY</code> 给 PDCP</td></tr>
+<tr><td>6</td><td><code>LTE_fdd_enb_pdcp.cc:223-292</code></td><td><code>handle_pdu_ready()</code>：SRB0 转比特流/SRB1 解 PDCP 头，入队后发 <code>RRC_PDU_READY</code></td></tr>
+<tr><td>7</td><td><code>LTE_fdd_enb_rrc.cc:243-267</code></td><td><code>handle_pdu_ready()</code>：SRB0→<code>ccch_sm</code>，SRB1/2→<code>dcch_sm</code></td></tr>
+<tr><td>8</td><td><code>LTE_fdd_enb_rrc.cc:656-668</code></td><td>SetupComplete 里的 NAS 入队，发 <code>MME_NAS_MSG_READY</code></td></tr>
+<tr><td>9</td><td><code>LTE_fdd_enb_mme.cc:180-205</code></td><td><code>handle_nas_msg()</code> → <code>parse_attach_request()</code></td></tr>
+<tr><td>10</td><td><code>LTE_fdd_enb_mme.cc:614-619</code></td><td>查 HSS（<code>LTE_fdd_enb_hss.cc:224</code>），转 <code>AUTHENTICATE</code> 态</td></tr>
+</tbody></table>
+</div>
+<p>（更早的随机接入阶段：PHY 检到 preamble 发 <code>PRACH_DECODE</code>，<code>LTE_fdd_enb_phy.cc:840</code> → MAC <code>handle_prach_decode()</code>，<code>LTE_fdd_enb_mac.cc:472</code> → <code>construct_random_access_response()</code> 里 <code>user_mgr-&gt;add_user()</code> 创建 user、分配 C-RNTI，<code>LTE_fdd_enb_mac.cc:1000-1014</code>。user 对象的生命周期从这里开始。）</p>
+<p><strong>下行（MME → 空口）：</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>跳</th><th>位置</th><th>干了什么</th></tr></thead><tbody>
+<tr><td>11</td><td><code>LTE_fdd_enb_mme.cc:1183-1233</code></td><td><code>attach_sm()</code> 按状态选发送函数</td></tr>
+<tr><td>12</td><td><code>LTE_fdd_enb_mme.cc:1506-1514</code></td><td>NAS 入 rb 队列，发 <code>RRC_NAS_MSG_READY</code>（或 <code>send_rrc_command()</code> 发 <code>RRC_CMD_READY</code>，<code>LTE_fdd_enb_mme.cc:1870-1884</code>）</td></tr>
+<tr><td>13</td><td><code>LTE_fdd_enb_rrc.cc:294-321</code></td><td><code>handle_nas_msg()</code> → <code>send_dl_info_transfer()</code> 组 DLInformationTransfer</td></tr>
+<tr><td>14</td><td><code>LTE_fdd_enb_rrc.cc:750-759</code></td><td>入队后发 <code>PDCP_SDU_READY</code>，此后沿 PDCP→RLC→MAC→PHY 原路下空口</td></tr>
+</tbody></table>
+</div>
+<p><strong>一句话总结追代码套路</strong>：消息类型枚举（<code>LTE_fdd_enb_msgq.h:80-129</code>）是地图，<code>grep MESSAGE_TYPE_XXX</code> 找到所有发送点，<code>dest_layer</code> 告诉你发给谁，接收方的 <code>handle_*_msg()</code> 就是下一跳。</p>
+<h2 id="定时器timer_mgr-与-t3xx"><a class="header" href="#定时器timer_mgr-与-t3xx">定时器：timer_mgr 与 T3xx</a></h2>
+<p>定时器模块的结构很直白：<code>LTE_fdd_enb_timer_mgr</code>（<code>LTE_fdd_enodeb/src/LTE_fdd_enb_timer_mgr.cc</code>）内部是 <code>std::map&lt;uint32, LTE_fdd_enb_timer*&gt;</code>，<code>start_timer(毫秒, 回调, &amp;id)</code> 注册（<code>LTE_fdd_enb_timer_mgr.cc:149-174</code>），<code>stop_timer</code>/<code>reset_timer</code> 配套（<code>:175-203</code>）。</p>
+<p>驱动节拍来自 MAC：PHY 每 TTI 发 <code>READY_TO_SEND</code>，MAC 的 <code>handle_ready_to_send()</code> 顺手往 <code>mac_to_timer</code> 队列丢一个 <code>TIMER_TICK</code>（<code>LTE_fdd_enb_mac.cc:376-389</code>）。timer_mgr 收到后 <code>handle_tick()</code> 遍历所有定时器加 1ms，超时的逐个 <code>call_callback()</code> 并从 map 删除（<code>LTE_fdd_enb_timer_mgr.cc:236-265</code>）。<strong>tick 精度就是 1 个 TTI（1ms）</strong>，够用但谈不上精确——这是拿协议节拍当时钟源的典型做法。</p>
+<p>一个反直觉的事实要先说清楚：<strong>T300/T310/T311 这些 36.331 的 T3xx 定时器是 UE 侧的</strong>，eNodeB 不跑它们。OpenLTE 里它们只作为 SIB2 的广播参数出现（<code>LTE_fdd_enb_cnfg_db.cc:672-674</code>，<code>t310 = 1000ms</code>、<code>t311 = 30000ms</code>）。eNodeB 侧实际跑的定时器有三个：</p>
+<ul>
+<li><strong>C-RNTI 预留定时器</strong>：<code>user_mgr-&gt;add_user()</code> 时启动，5000ms（<code>LTE_fdd_enb_user_mgr.cc:300</code>）。RACH 建了 user 但 UE 迟迟不完成连接建立，超时后 <code>handle_c_rnti_timer_expiry()</code>（<code>LTE_fdd_enb_user_mgr.cc:610</code>）回收 C-RNTI。</li>
+<li><strong>用户不活动定时器</strong>：<code>user-&gt;start_inactivity_timer()</code>（<code>LTE_fdd_enb_user.cc:753</code>）；每次收到该 UE 的 PUSCH 都 reset（<code>LTE_fdd_enb_mac.cc:619</code>）。超时回调 <code>handle_timer_expiry()</code>（<code>LTE_fdd_enb_user.cc:726-742</code>）直接构造一条 <code>RRC_CMD_RELEASE</code> 调 <code>rrc-&gt;handle_cmd()</code> 释放 RRC 连接——相当于真实网络里的"用户面不活动释放"。</li>
+<li><strong>RLC t-pollretransmit</strong>：AM 模式轮询重传，100ms（<code>LTE_fdd_enb_rb.cc:791</code>），36.322 定义的标准定时器。</li>
+</ul>
+<p>所以"超时了往哪发消息"的答案是：<strong>多数情况下不发消息，直接在回调里调目标模块的公开接口</strong>（比如 <code>rrc-&gt;handle_cmd()</code>）。这是 msgq 规则的一个例外，值得注意——它成立的前提是这些回调都很短，不会阻塞 timer_mgr 的消费线程。</p>
+<h2 id="设计点评"><a class="header" href="#设计点评">设计点评</a></h2>
+<p><strong>优点：</strong></p>
+<ul>
+<li><strong>极致的可读性</strong>。一个模块一个类、一条链路一条队列、消息类型一目了然。控制面"parse 改状态 / sm 执行动作"的两段式写法，让状态机代码没有任何藏起来的副作用。作为教学代码，这是它最大的价值。</li>
+<li><strong>模块间零共享内存（除了 user/rb）</strong>。每层只摸自己的队列指针，崩溃影响面小，gdb 里栈也干净。</li>
+<li><strong>CPU 亲和性、pcap 落盘（<code>LTE_fdd_enb_interface.cc:506-563</code>）这些细节</strong>都是真刀真枪做 SDR 才会想到的。</li>
+</ul>
+<p><strong>缺点：</strong></p>
+<ul>
+<li><strong>Singleton 满天飞</strong>。interface、cnfg_db、hss、user_mgr、各协议层全是全局单例，单元测试几乎没法做——你没法"新建一个 RRC 实例喂假消息"。作者自己也意识到了，MME/PDCP/GW 已经改回普通类（<code>LTE_fdd_enb_mme.h:44</code> 的修订记录写着 "Moved away from singleton pattern"），但改了一半。</li>
+<li><strong>user/rb 是隐式共享状态</strong>。消息只传指针，意味着十几条线程并发读写同一批 user 对象，全靠对象内部的信号量自觉保护，死锁和竞态的风险都压在"大家都守规矩"上。</li>
+<li><strong>队列满即丢</strong>。<code>boost::circular_buffer</code> 容量写死 100，满了 <code>push_back</code> 静默覆盖最老的消息，没有任何背压或告警。</li>
+<li><strong>控制面与用户面同优先级</strong>。所有消息挤同一种队列，没有 QoS 区分；RRC 信令不会因为队列前面堆了 100 个用户面消息而加塞。</li>
+</ul>
+<p><strong>和生产级实现的差距：</strong> 以 srsRAN 为例——它有真正的 S1AP 接口接外部核心网（OpenLTE 把 MME/HSS 合进进程里，出不了实验室）、有 SCTP、有完整的多 UE 调度与测量上报、RRC 状态机覆盖切换/重建/寻呼全场景，任务模型上也是按"协议栈线程池 + 精确 TTI 时钟"组织而不是一层一线程。OpenLTE 的定位从来都不是"能商用"，而是"能让你把 LTE 协议栈从头到尾看懂"——从这个目标看，Singleton + msgq 这套朴素架构反而是优点：每一跳都看得见摸得着。</p>
+<h2 id="小结"><a class="header" href="#小结">小结</a></h2>
+<ul>
+<li><code>main()</code> 只起三个 Singleton 和两个 TCP 端口（<code>LTE_fdd_enb_main.cc:63-72</code>）；协议栈由控制端口的 <code>start</code> 命令触发 <code>handle_start()</code>（<code>LTE_fdd_enb_interface.cc:971</code>）装配：13 条 msgq + 8 个模块按序启动。</li>
+<li>并发模型 = 每条消息队列一条消费线程；消息信封是 <code>(type, dest_layer, union)</code>，类型全集在 <code>LTE_fdd_enb_msgq.h:80-129</code>；数据不进队列，挂在共享的 <code>(user, rb)</code> 对象上。</li>
+<li>RRC 状态机挂在 rb 上（<code>LTE_fdd_enb_rb.h:152-158</code>），入口 <code>ccch_sm</code>/<code>dcch_sm</code>（<code>LTE_fdd_enb_rrc.cc:434</code>、<code>:511</code>），主线 IDLE → SRB1_SETUP → WAIT_FOR_CON_SETUP_COMPLETE → RRC_CONNECTED。</li>
+<li>EMM 状态机（<code>LTE_fdd_enb_rb.h:112-125</code>）在 MME 模块，"parse 改状态、<code>attach_sm</code> 执行动作"两段式；HSS 只是本地内存数据库，鉴权用 Milenage（35.206）。</li>
+<li>追信令的标准方法：在 <code>LTE_fdd_enb_msgq.h</code> 查消息类型 → grep 发送点 → 按 <code>dest_layer</code> 找接收方的 <code>handle_*_msg()</code>。</li>
+<li>定时器由 MAC 每 TTI 发的 <code>TIMER_TICK</code> 驱动；T3xx 是 UE 侧定时器，eNodeB 只在 SIB2 里广播，本地只跑 C-RNTI 预留、不活动释放、t-pollretransmit 三个。</li>
+</ul>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../advanced/02-NAS协议与TLV编码.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../advanced/04-LTE安全与鉴权.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../advanced/02-NAS协议与TLV编码.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../advanced/04-LTE安全与鉴权.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>

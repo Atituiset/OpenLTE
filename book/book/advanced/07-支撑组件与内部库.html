@@ -1,0 +1,416 @@
+<!DOCTYPE HTML>
+<html lang="zh-CN" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>支撑组件与内部库 - OpenLTE 源码精读：从入门到进阶</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">OpenLTE 源码精读：从入门到进阶</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/mgp25/OpenLTE" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="第-7-章-支撑组件与内部库胶水层全景"><a class="header" href="#第-7-章-支撑组件与内部库胶水层全景">第 7 章 支撑组件与内部库：胶水层全景</a></h1>
+<p>前面几章我们沿着信令面（RRC/NAS）、用户面（MAC/RLC/PDCP）、物理层一路读下来，会反复撞到一些"边角色"：<code>LIBLTE_BIT_MSG_STRUCT</code>、<code>LTE_fdd_enb_msgq</code>、<code>cnfg_db-&gt;get_param()</code>、<code>libtools_scoped_lock</code>……它们不属于任何一层协议，却撑起了整个系统。本章把这些基础设施逐个讲透。读完这一章，仓库里应该没有任何一个文件是你没概念的了。</p>
+<h2 id="typedefsh编码风格的地基"><a class="header" href="#typedefsh编码风格的地基">typedefs.h：编码风格的地基</a></h2>
+<p>全仓库所有代码共享一份类型定义 <code>cmn_hdr/typedefs.h</code>，它就一件事：把定宽整数 typedef 成不带 <code>_t</code> 的短名字（<code>cmn_hdr/typedefs.h:50-57</code>）：</p>
+<pre><code class="language-c">typedef char               int8;
+typedef unsigned char      uint8;
+typedef short              int16;
+typedef unsigned short     uint16;
+typedef int                int32;
+typedef unsigned int       uint32;
+typedef long long          int64;
+typedef unsigned long long uint64;
+</code></pre>
+<p>你熟悉的 <code>std::uint32_t</code> 对应这里的 <code>uint32</code>。这份 2012 年写的代码比 C99 的 <code>&lt;stdint.h&gt;</code> 普及更早，作者自己造了一套，于是 <code>uint32</code>/<code>int64</code> 成了全仓库的"官方语言"。顺着这个头文件你还能看到整个项目的风格基座：</p>
+<ul>
+<li>所有类型/枚举/宏一律全大写加前缀：库内是 <code>LIBLTE_*</code>、<code>LIBTOOLS_*</code>，eNodeB 应用内是 <code>LTE_FDD_ENB_*</code>，一眼能看出归属；</li>
+<li>每个枚举的最后一项都是 <code>_N_ITEMS</code>，后面紧跟一个同名的 <code>*_text[][]</code> 字符串表，用于日志打印（比如 <code>libtools_socket_wrap_error_text</code>，<code>libtools/hdr/libtools_socket_wrap.h:68-72</code>）；</li>
+<li>每个文件开头都是同一个五段式模板：<code>INCLUDES / DEFINES / TYPEDEFS / GLOBAL VARIABLES / CLASS IMPLEMENTATIONS</code>，这是从 GNU Radio 时代继承的习惯。</li>
+</ul>
+<h2 id="liblte-的消息缓冲区全仓库的物流系统"><a class="header" href="#liblte-的消息缓冲区全仓库的物流系统">liblte 的消息缓冲区：全仓库的"物流系统"</a></h2>
+<h3 id="bit_msg-与-byte_msg"><a class="header" href="#bit_msg-与-byte_msg">BIT_MSG 与 BYTE_MSG</a></h3>
+<p>先纠正一个容易望文生义的地方：<code>liblte_interface.h/cc</code> 里装的其实是 band 和 EARFCN 换算表，消息缓冲区结构定义在隔壁的 <code>liblte_common.h</code>。这两个结构是全仓库协议层的"标准集装箱"（<code>liblte/hdr/liblte_common.h:68-76</code>）：</p>
+<pre><code class="language-c">typedef struct{
+    uint32 N_bits;
+    uint8  msg[LIBLTE_MAX_MSG_SIZE];
+}LIBLTE_BIT_MSG_STRUCT;
+
+typedef struct{
+    uint32 N_bytes;
+    uint8  msg[LIBLTE_MAX_MSG_SIZE];
+}LIBLTE_BYTE_MSG_STRUCT;
+</code></pre>
+<p>要点有三个：</p>
+<ul>
+<li><code>msg</code> 数组的每个元素只装 1 个比特（BIT_MSG）或 1 个字节（BYTE_MSG），不是紧凑打包的位流。这让编解码代码完全不用管字节对齐，代价是内存浪费——<code>LIBLTE_MAX_MSG_SIZE</code> 固定为 5512（<code>liblte/hdr/liblte_common.h:54</code>，注释里作者自己写了 "This was chosen arbitrarily"）。</li>
+<li>控制面（RRC/NAS/PHY 信道）走 BIT_MSG，因为 ASN.1 PER 编码天然是比特流；用户面 IP 包走 BYTE_MSG，比如 GW 模块收 IP 包用的就是它（<code>LTE_fdd_enodeb/src/LTE_fdd_enb_gw.cc:267</code>）。</li>
+<li>结构里没有长度上限检查的责任方，写爆数组全靠调用方自觉——读代码时记住这一点。</li>
+</ul>
+<h3 id="比特流的游标-api"><a class="header" href="#比特流的游标-api">比特流的"游标 API"</a></h3>
+<p><code>liblte_common.cc</code> 里只有两个函数，但 RRC/NAS 的每一行编解码都建立在它们之上。打包方向（<code>liblte/src/liblte_common.cc:62-73</code>）：</p>
+<pre><code class="language-c">void liblte_value_2_bits(uint32 value, uint8 **bits, uint32 N_bits)
+{
+    uint32 i;
+    for(i=0; i&lt;N_bits; i++)
+        (*bits)[i] = (value &gt;&gt; (N_bits-i-1)) &amp; 0x1;
+    *bits += N_bits;
+}
+</code></pre>
+<p>它干的事等价于网络编程里的 <code>memcpy + advance</code>：把 <code>value</code> 的高 N 位逐位（MSB first）写进 <code>bits</code> 指向的位置，然后把指针本身前移 N 格。注意参数是 <code>uint8 **</code>——指针的指针，就是为了能移动调用方的游标。解包方向 <code>liblte_bits_2_value</code>（<code>liblte/src/liblte_common.cc:80-92</code>）完全对称：读 N 位拼成一个 <code>uint32</code>，游标前移并返回值。</p>
+<p>你在前面章节看到的 RRC pack/unpack 代码，本质就是这两个函数按 36.331 的字段顺序反复调用。MSB first 的顺序也正是 PER 编码的约定。</p>
+<h3 id="earfcn-与频率换算"><a class="header" href="#earfcn-与频率换算">EARFCN 与频率换算</a></h3>
+<p><code>liblte_interface.h/cc</code> 把 36.101 的频段表和 EARFCN 范围表直接硬编码成了几个大数组：<code>liblte_interface_band_text[]</code>/<code>band_num[]</code>（<code>liblte/hdr/liblte_interface.h:106-118</code>，对应 36.101 频段定义）、<code>first_dl_earfcn[]</code>/<code>last_dl_earfcn[]</code>（<code>liblte/hdr/liblte_interface.h:132-151</code>，对应 36.101 的 EARFCN 范围）。换算公式在 <code>liblte_interface_dl_earfcn_to_frequency</code>（<code>liblte/src/liblte_interface.cc:101-116</code>）：先线性扫描找到 EARFCN 落在哪个 band，再按 36.101 的公式计算：</p>
+<pre><code>F_dl = F_dl_low[i] + 100000 * (dl_earfcn - N_offs_dl[i]);   // 单位 Hz，步进 100 kHz
+</code></pre>
+<p>FDD 的上下行 EARFCN 换算简单得近乎粗暴：同一个 band 内下行 + 18000 就是上行（<code>liblte/src/liblte_interface.cc:124-132</code>），TDD 频段则直接相等。这两个函数是 cnfg_db 里 "改 dl_earfcn 自动带出 ul_earfcn 和中心频率" 的底层支撑，后面讲 cnfg_db 时会接回来。</p>
+<h2 id="libtools-四件套"><a class="header" href="#libtools-四件套">libtools 四件套</a></h2>
+<p><code>libtools/</code> 是 2015-2017 年间从各模块里抽出来的公共工具库，一共四个组件，编译成 <code>libtools</code>（库名 <code>tools</code>，见 <code>libtools/CMakeLists.txt:2-7</code>）。</p>
+<h3 id="scoped_lock最小的-raii"><a class="header" href="#scoped_lock最小的-raii">scoped_lock：最小的 RAII</a></h3>
+<p>全仓库只有这一处锁封装（<code>libtools/src/libtools_scoped_lock.cc:57-77</code>）：构造函数对 <code>sem_t</code> 做 <code>sem_wait</code> 或对 <code>pthread_mutex_t</code> 做 <code>pthread_mutex_lock</code>，析构函数对称释放。这就是你熟悉的 <code>std::lock_guard</code>，只是手工版，且同时兼容两种原语。典型用法随处可见，例如单例的 get_instance（<code>LTE_fdd_enodeb/src/LTE_fdd_enb_timer_mgr.cc:72-82</code>）：</p>
+<pre><code class="language-c">LTE_fdd_enb_timer_mgr* LTE_fdd_enb_timer_mgr::get_instance(void)
+{
+    libtools_scoped_lock lock(timer_mgr_instance_mutex);
+    if(NULL == instance)
+        instance = new LTE_fdd_enb_timer_mgr();
+    return(instance);
+}
+</code></pre>
+<p>注意项目用二进制信号量（<code>sem_init(&amp;x, 0, 1)</code>）当互斥锁用的场景比 mutex 还多——这是历史包袱，2015 年有一次从 <code>boost::mutex</code> 到 <code>sem_t</code> 的全量迁移（见 <code>libtools_socket_wrap.cc</code> 头部 12/06/2015 的修订记录）。</p>
+<h3 id="socket_wraptelnet-控制台的地基"><a class="header" href="#socket_wraptelnet-控制台的地基">socket_wrap：telnet 控制台的地基</a></h3>
+<p>eNodeB 的运维面是两个 TCP 文本端口：控制口 30000、debug 口 30001（<code>LTE_fdd_enodeb/hdr/LTE_fdd_enb_interface.h:73-74</code>）。它们的实现基础就是 <code>libtools_socket_wrap</code>。构造函数的参数表把设计说得很清楚（<code>libtools/hdr/libtools_socket_wrap.h:102-109</code>）：给 IP、端口、server/client 类型，外加四个回调——<code>handle_msg</code> / <code>handle_connect</code> / <code>handle_disconnect</code> / <code>handle_error</code>，全是指向自由函数的函数指针，靠 <code>static</code> 成员函数绕回对象（<code>LTE_fdd_enodeb/src/LTE_fdd_enb_interface.cc:258-265</code>）。</p>
+<p>server 端收包循环是教科书式的 <code>select</code> 单线程模型（<code>libtools/src/libtools_socket_wrap.cc:221-230</code>）：</p>
+<pre><code class="language-c">while(1)
+{
+    select_timeout.tv_sec  = 0;
+    select_timeout.tv_usec = 500000;
+    tmp_fds                = fds;
+    if(select(fd_max+1, &amp;tmp_fds, NULL, NULL, &amp;select_timeout) == -1)
+        break;
+    ...
+}
+</code></pre>
+<p>随后按 fd 分发：监听 fd 可读就 <code>accept</code> 并把状态切到 CONNECTED（<code>libtools/src/libtools_socket_wrap.cc:239-262</code>）；连接 fd 可读就 <code>read</code>，然后手工剥掉行尾的 <code>\n</code> / <code>\r</code>，按行调用 <code>handle_msg</code>（<code>libtools/src/libtools_socket_wrap.cc:298-324</code>）——所以控制台命令天然是"一行一条"。两个提醒：这个类只支持单客户端（listen backlog 为 1，见 <code>libtools/src/libtools_socket_wrap.cc:209</code>）；client 端线程是空的 FIXME（<code>libtools/src/libtools_socket_wrap.cc:337-341</code>），全项目只用到 server 模式。发送侧 <code>send()</code> 就是加锁后的 <code>write</code>（<code>libtools/src/libtools_socket_wrap.cc:173-189</code>）。</p>
+<h3 id="ipc_msgq跨进程的胖管道"><a class="header" href="#ipc_msgq跨进程的胖管道">ipc_msgq：跨进程的胖管道</a></h3>
+<p><code>libtools_ipc_msgq</code> 包的是 <code>boost::interprocess::message_queue</code>，用于 eNodeB 和外部 UE 进程之间的直通通信（<code>mac_direct_to_ue</code> / <code>phy_direct_to_ue</code> 调试模式）。消息格式是"类型枚举 + 匿名 union"（<code>libtools/hdr/libtools_ipc_msgq.h:100-111</code>），和 eNodeB 内部消息队列同一套路。实现上有三个细节值得记住：</p>
+<ul>
+<li>接收端用 <code>open_or_create</code> 建队列，容量固定 100 条、每条固定 <code>sizeof(LIBTOOLS_IPC_MSGQ_MESSAGE_STRUCT)</code>（<code>libtools/src/libtools_ipc_msgq.cc:120-123</code>）——union 的尺寸就是最大成员 <code>phy_samps_msg</code>（里面塞了 4 天线的 I/Q 缓冲，<code>libtools/hdr/libtools_ipc_msgq.h:92-98</code>），所以这条队列的消息相当大；</li>
+<li>发送端每次 <code>open_only</code> + <code>try_send</code>，队列满了直接丢（<code>libtools/src/libtools_ipc_msgq.cc:95-110</code>）；</li>
+<li>析构时先发一条 <code>KILL</code> 消息再 cancel/join 接收线程（<code>libtools/src/libtools_ipc_msgq.cc:83-90</code>），<code>KILL</code> 在接收循环里把 <code>not_done</code> 置假退出（<code>libtools/src/libtools_ipc_msgq.cc:137-140</code>）。</li>
+</ul>
+<p>回调机制是手写版的 <code>std::bind</code>：<code>libtools_ipc_msgq_cb</code> 存一个 <code>void*</code> 对象指针加自由函数指针，再用模板 wrapper 把成员函数指针转成自由函数（<code>libtools/hdr/libtools_ipc_msgq.h:118-133</code>）。这套"cb 结构体 + 模板 wrapper"的模式在 eNodeB 的 msgq 和 timer 里又原样复制了两遍。使用点在 MAC 和 PHY 里：开启 direct-to-UE 模式时各自创建名为 <code>enb_ue</code> 的队列（<code>LTE_fdd_enodeb/src/LTE_fdd_enb_mac.cc:187</code>、<code>LTE_fdd_enodeb/src/LTE_fdd_enb_phy.cc:322</code>）。</p>
+<h3 id="helpers字符串--数字的苦力"><a class="header" href="#helpers字符串--数字的苦力">helpers：字符串 ↔ 数字的苦力</a></h3>
+<p><code>libtools_helpers</code> 是控制台参数解析的底层：<code>to_string</code> 一族重载（含定宽补零和字节数组转大写 hex，<code>libtools/src/libtools_helpers.cc:103-128</code>）、<code>to_number</code> 一族（十进制逐位累乘，<code>libtools/src/libtools_helpers.cc:171-196</code>；hex 按 nibble 拼字节，<code>libtools/src/libtools_helpers.cc:197-235</code>）、输入校验 <code>is_string_valid_as_number</code>（<code>libtools/src/libtools_helpers.cc:266-303</code>），外加日志时间戳 <code>get_formatted_time</code>（<code>libtools/src/libtools_helpers.cc:242-258</code>）。控制台里 <code>write mcc 001</code> 能变成数字，走的就是这里的 <code>is_string_valid_as_number</code> + <code>to_number</code>。</p>
+<h2 id="enodeb-内部消息队列lte_fdd_enb_msgq"><a class="header" href="#enodeb-内部消息队列lte_fdd_enb_msgq">eNodeB 内部消息队列：LTE_fdd_enb_msgq</a></h2>
+<p>eNodeB 各层之间不直接互相调用，全部走 <code>LTE_fdd_enb_msgq</code>。消息格式同样是"类型 + 目标层 + union"（<code>LTE_fdd_enodeb/hdr/LTE_fdd_enb_msgq.h:372-376</code>）：</p>
+<pre><code class="language-c">typedef struct{
+    LTE_FDD_ENB_MESSAGE_TYPE_ENUM type;
+    LTE_FDD_ENB_DEST_LAYER_ENUM   dest_layer;
+    LTE_FDD_ENB_MESSAGE_UNION     msg;
+}LTE_FDD_ENB_MESSAGE_STRUCT;
+</code></pre>
+<p><code>type</code> 枚举本身就是一张协议栈交互图，注释按方向分组写好了（"PHY -&gt; MAC Messages"、"PDCP -&gt; GW Messages"……见 <code>LTE_fdd_enodeb/hdr/LTE_fdd_enb_msgq.h:85-129</code>）。与 ipc_msgq 的跨进程队列不同，这里用 <code>boost::circular_buffer</code>（容量 100）加两个信号量做进程内队列（<code>LTE_fdd_enodeb/src/LTE_fdd_enb_msgq.cc:91-98</code>）。send 侧是标准的"sync_sem 保护环形缓冲、msg_sem 计数通知"（<code>LTE_fdd_enodeb/src/LTE_fdd_enb_msgq.cc:140-158</code>）；接收线程 <code>attach_rx</code> 之后才创建（<code>LTE_fdd_enodeb/src/LTE_fdd_enb_msgq.cc:121-127</code>），它做了两件实时性相关的事：</p>
+<ul>
+<li>按构造时传入的 <code>prio</code> 设置 <code>SCHED_FIFO</code> 调度优先级（<code>LTE_fdd_enodeb/src/LTE_fdd_enb_msgq.cc:192-197</code>）；</li>
+<li>用 <code>pthread_setaffinity_np</code> 把自己钉在"除最后一个核之外"的所有核上——最后一个核留给 PHY/Radio（<code>LTE_fdd_enodeb/src/LTE_fdd_enb_msgq.cc:199-202</code>）。</li>
+</ul>
+<p>所有队列在 <code>handle_start()</code> 里一次性 new 出来，一共 13 条，名字直接标出方向：<code>phy_to_mac</code>、<code>rrc_to_mme</code>、<code>pdcp_to_gw</code>……（<code>LTE_fdd_enodeb/src/LTE_fdd_enb_interface.cc:992-1004</code>）。这就是第 3 章那张多线程架构图的物理实现。</p>
+<h2 id="timer-与-timer_mgr1ms-心跳驱动的定时器框架"><a class="header" href="#timer-与-timer_mgr1ms-心跳驱动的定时器框架">timer 与 timer_mgr：1ms 心跳驱动的定时器框架</a></h2>
+<p>定时器分两层。<code>LTE_fdd_enb_timer</code> 本身只是个计数器：构造时记下到期毫秒数和回调（<code>LTE_fdd_enodeb/src/LTE_fdd_enb_timer.cc:79-87</code>），<code>increment()</code> 加一、<code>expired()</code> 比较（<code>LTE_fdd_enodeb/src/LTE_fdd_enb_timer.cc:99-113</code>），完全没有线程——它不会自己跑。</p>
+<p>驱动它的是 <code>LTE_fdd_enb_timer_mgr</code>（单例，<code>LTE_fdd_enodeb/src/LTE_fdd_enb_timer_mgr.cc:72-82</code>）。启动时它挂到 MAC→timer 的 msgq 上（<code>LTE_fdd_enodeb/src/LTE_fdd_enb_timer_mgr.cc:121-135</code>），而 MAC 每收到 PHY 的一个 ready-to-send（即每 TTI，1ms）就发一条 <code>TIMER_TICK</code>（<code>LTE_fdd_enodeb/src/LTE_fdd_enb_mac.cc:376-389</code>）。timer_mgr 收到 tick 后遍历所有定时器加一、收集到期的、统一回调并删除（<code>LTE_fdd_enodeb/src/LTE_fdd_enb_timer_mgr.cc:236-266</code>）。也就是说：<strong>整个 eNodeB 的定时器精度锚定在 PHY 的 1ms 子帧时钟上</strong>，无线一停，所有定时器停摆。这个设计很 LTE——协议里一切时间本来就以子帧为单位。</p>
+<p>注册接口是 <code>start_timer(m_seconds, cb, &amp;timer_id)</code>（<code>LTE_fdd_enodeb/src/LTE_fdd_enb_timer_mgr.cc:149-174</code>），id 从 0 递增分配。实际使用者包括：user_mgr 给每个新用户开 5 秒的 C-RNTI 预留定时器（<code>LTE_fdd_enodeb/src/LTE_fdd_enb_user_mgr.cc:300</code>）、user 级的 inactivity timer（<code>LTE_fdd_enodeb/src/LTE_fdd_enb_user.cc:758</code>）、RLC 的 t_PollRetransmit 100ms（<code>LTE_fdd_enodeb/src/LTE_fdd_enb_rb.cc:791</code>，对应 36.322 的轮询重传定时器）。需要说明的是，36.331 里 UE 侧的 T300/T301/T310 是跑在 UE 上的，eNodeB 侧这套框架承载的是 RLC/MAC/用户管理自己的定时需求，别去代码里找 T300。</p>
+<h2 id="cnfg_db运行参数的单一事实来源"><a class="header" href="#cnfg_db运行参数的单一事实来源">cnfg_db：运行参数的单一事实来源</a></h2>
+<h3 id="存储模型"><a class="header" href="#存储模型">存储模型</a></h3>
+<p><code>LTE_fdd_enb_cnfg_db</code> 是又一个单例，内部就三个按值类型分开的 map（<code>LTE_fdd_enodeb/hdr/LTE_fdd_enb_cnfg_db.h:146-148</code>）：</p>
+<pre><code class="language-c">std::map&lt;LTE_FDD_ENB_PARAM_ENUM, double&gt; var_map_double;
+std::map&lt;LTE_FDD_ENB_PARAM_ENUM, int64&gt;  var_map_int64;
+std::map&lt;LTE_FDD_ENB_PARAM_ENUM, uint32&gt; var_map_uint32;
+</code></pre>
+<p>参数没有注册表，"某个参数属于哪个 map"完全由构造函数里写默认值的位置决定（<code>LTE_fdd_enodeb/src/LTE_fdd_enb_cnfg_db.cc:125-175</code>）：bandwidth 是 double，dl_earfcn/tx_gain 是 int64，mcc/mnc/ip_addr 是 uint32。默认值也值得看一眼：band 1、10 MHz、50 RB、单天线、MCC=<code>0xFFFFF001</code>（即 "001"，0xF 是填充位）。MCC/MNC 的 nibble 布局（对应 24.301 中 PLMN identity 的数字打包思路）：</p>
+<div class="table-wrapper"><table><thead><tr><th>字段</th><th>宽度</th><th>含义</th></tr></thead><tbody>
+<tr><td>digit[0..2]（MCC）</td><td>各 4 bit（3 个 nibble）</td><td>十进制数字，如 001</td></tr>
+<tr><td>digit[0..2/3]（MNC）</td><td>各 4 bit</td><td>2 或 3 位数字</td></tr>
+<tr><td>填充位</td><td>4 bit</td><td>0xF 表示"无此位"</td></tr>
+</tbody></table>
+</div>
+<h3 id="set_param-的级联魔法"><a class="header" href="#set_param-的级联魔法">set_param 的级联魔法</a></h3>
+<p><code>set_param</code> 不只是存值，它维护参数间的派生关系（<code>LTE_fdd_enodeb/src/LTE_fdd_enb_cnfg_db.cc:183-233</code>）：</p>
+<ul>
+<li>写 <code>n_id_cell</code> 自动拆出 <code>n_id_1</code>/<code>n_id_2</code>（<code>LTE_fdd_enodeb/src/LTE_fdd_enb_cnfg_db.cc:197-200</code>，即 PCI = 3×N_id_1 + N_id_2，36.211）；</li>
+<li>写 <code>dl_earfcn</code> 自动重算 ul_earfcn 和上下行中心频率——用的正是前面 <code>liblte_interface</code> 的换算函数（<code>LTE_fdd_enodeb/src/LTE_fdd_enb_cnfg_db.cc:201-204</code>）；</li>
+<li>写 <code>tx_gain</code>/<code>rx_gain</code> 会直接穿透到 radio 对象实时生效（<code>LTE_fdd_enodeb/src/LTE_fdd_enb_cnfg_db.cc:220-223</code>）；</li>
+<li>写 <code>bandwidth</code> 会按档位同步 N_rb 和 RRC 的 DL_BW 枚举（<code>LTE_fdd_enodeb/src/LTE_fdd_enb_cnfg_db.cc:246-274</code>）。</li>
+</ul>
+<h3 id="控制台--cnfg_db--各模块完整链路"><a class="header" href="#控制台--cnfg_db--各模块完整链路">控制台 → cnfg_db → 各模块：完整链路</a></h3>
+<p>你在 telnet 里敲 <code>write dl_earfcn 1575</code>，数据流是这样的：</p>
+<ol>
+<li>socket_wrap 的 server 线程按行收到字符串，回调进 <code>LTE_fdd_enb_interface::handle_ctrl_msg</code>，按关键字分发到 <code>handle_write</code>（<code>LTE_fdd_enodeb/src/LTE_fdd_enb_interface.cc:690-734</code>）；</li>
+<li><code>handle_write</code> 在 <code>var_map</code>（键是参数名字符串）里查到 <code>LTE_FDD_ENB_VAR_STRUCT</code>，按声明的类型（DOUBLE/INT64/HEX/UINT32）解析值、查只读标志，再交给 <code>write_value</code> 做上下界检查（<code>LTE_fdd_enodeb/src/LTE_fdd_enb_interface.cc:887-970</code>；VAR_STRUCT 布局见 <code>LTE_fdd_enodeb/hdr/LTE_fdd_enb_interface.h:253-263</code>）；</li>
+<li><code>write_value</code> 调 <code>cnfg_db-&gt;set_param(...)</code> 落库并触发上述级联；</li>
+<li>各模块在需要时 <code>get_param</code> 读取——比如 radio 启动时读 EARFCN/带宽/天线数（<code>LTE_fdd_enodeb/src/LTE_fdd_enb_radio.cc:1101-1110</code>），<code>construct_sys_info</code> 把参数翻译成 MIB/SIB 结构（<code>LTE_fdd_enodeb/src/LTE_fdd_enb_cnfg_db.cc:426</code> 起）。</li>
+</ol>
+<p>如果开了 <code>use_cnfg_file</code>，每次 <code>set_param</code> 还会把全量参数写回 <code>/tmp/LTE_fdd_enodeb.cnfg_db</code>（<code>LTE_fdd_enodeb/src/LTE_fdd_enb_cnfg_db.cc:980-1082</code>）；下次启动时 <code>read_cnfg_file</code> 逐行读文件并回调 <code>handle_write</code>（<code>LTE_fdd_enodeb/src/LTE_fdd_enb_cnfg_db.cc:959-979</code>）——配置文件和 telnet 命令复用同一条解析路径，很省代码。这个回放在 <code>main()</code> 里执行（<code>LTE_fdd_enodeb/src/LTE_fdd_enb_main.cc:70-72</code>）。</p>
+<h2 id="radioccuhd-收发如何被包成模块接口"><a class="header" href="#radioccuhd-收发如何被包成模块接口">radio.cc：UHD 收发如何被包成模块接口</a></h2>
+<p><code>LTE_fdd_enb_radio</code> 是门面类，底下按设备分三个实现类：<code>no_rf</code>（空跑时钟）、<code>usrp_b2x0</code>（UHD）、<code>bladerf</code>（libbladeRF），见 <code>LTE_fdd_enodeb/hdr/LTE_fdd_enb_radio.h:115-192</code>。<code>start()</code> 从 cnfg_db 读参数后按选中的设备类型分发（<code>LTE_fdd_enodeb/src/LTE_fdd_enb_radio.cc:1115-1158</code>），最后拉起一个 <code>radio_thread</code>（<code>LTE_fdd_enodeb/src/LTE_fdd_enb_radio.cc:1161</code>）。</p>
+<p>UHD 的 setup 就一段标准流程（<code>LTE_fdd_enodeb/src/LTE_fdd_enb_radio.cc:249-258</code>）：<code>set_tx_rate</code>/<code>set_rx_rate</code> 设采样率，<code>set_tx_freq</code>/<code>set_rx_freq</code> 用 <code>liblte_interface_*_earfcn_to_frequency</code> 把 EARFCN 换算成 Hz，再设增益、开流。收发主循环用 UHD 的时间戳做精确对齐：TX 按 <code>next_tx_ts += N_samps/采样率</code> 排产（<code>LTE_fdd_enodeb/src/LTE_fdd_enb_radio.cc:341-366</code>），RX 每收满一个子帧的采样就回调 PHY 的 <code>radio_interface()</code>——PHY 是被 radio 线程以 1ms 节奏"踢"着走的，没有自己的时钟。</p>
+<p>采样率和带宽的关系集中在 <code>get_phy_sample_rate()</code>（<code>LTE_fdd_enodeb/src/LTE_fdd_enb_radio.cc:1348-1386</code>），它按 RRC 的 DL_BW 枚举查表（对应 36.104 的信道带宽配置）：</p>
+<div class="table-wrapper"><table><thead><tr><th>DL_BW 枚举</th><th>信道带宽</th><th>采样率 fs</th><th>每子帧采样数</th></tr></thead><tbody>
+<tr><td>N_RB_100 / 75</td><td>20 / 15 MHz</td><td>30.72 MHz</td><td>30720</td></tr>
+<tr><td>N_RB_50</td><td>10 MHz</td><td>15.36 MHz</td><td>15360</td></tr>
+<tr><td>N_RB_25</td><td>5 MHz</td><td>7.68 MHz</td><td>7680</td></tr>
+<tr><td>N_RB_15</td><td>3 MHz</td><td>3.84 MHz</td><td>3840</td></tr>
+<tr><td>N_RB_6</td><td>1.4 MHz</td><td>1.92 MHz</td><td>1920</td></tr>
+</tbody></table>
+</div>
+<p>规律就是 LTE 的 15 kHz 子载波间隔 × FFT 点数（2048/1024/512/256/128），每子帧采样数恒等于 fs/1000。没有射频硬件时 <code>no_rf</code> 用 1ms 的 <code>nanosleep</code> 模拟同样的节奏（<code>LTE_fdd_enodeb/src/LTE_fdd_enb_radio.cc:183-199</code>），整套协议栈可以纯软件空转调试。</p>
+<h2 id="gwcc用户面数据怎么出基站"><a class="header" href="#gwcc用户面数据怎么出基站">gw.cc：用户面数据怎么出基站</a></h2>
+<p>OpenLTE 没有实现 S1 接口的 GTP-U，数据面出口是一个 Linux TUN 设备——基站进程自己在内核里注册一块虚拟网卡 <code>tun_openlte</code>，UE 的 IP 包从这里进出主机网络栈（配合根目录的 <code>enodeb_nat_script.sh</code> 做 NAT 转发）。</p>
+<p>上行（UE→网络）：PDCP 收到用户面数据后发 <code>GW_DATA_READY</code>，GW 从 rb 取出 <code>LIBLTE_BYTE_MSG_STRUCT</code> 直接 <code>write(tun_fd, ...)</code>（<code>LTE_fdd_enodeb/src/LTE_fdd_enb_gw.cc:229-257</code>）。下行（网络→UE）是 receive_thread 阻塞读 TUN 设备，解析 IP 头，按目的地址找到 UE 和 DRB，再发给 PDCP（<code>LTE_fdd_enodeb/src/LTE_fdd_enb_gw.cc:278-309</code>）：</p>
+<pre><code class="language-c">N_bytes = read(gw-&gt;tun_fd, &amp;msg.msg[idx], LIBLTE_MAX_MSG_SIZE);
+...
+memcpy(&amp;ip_pkt, msg.msg, sizeof(iphdr));
+if(ntohs(ip_pkt.tot_len) == msg.N_bytes)
+{
+    if(LTE_FDD_ENB_ERROR_NONE == user_mgr-&gt;find_user(ntohl(ip_pkt.daddr), &amp;pdcp_data_sdu.user) &amp;&amp;
+       LTE_FDD_ENB_ERROR_NONE == pdcp_data_sdu.user-&gt;get_drb(LTE_FDD_ENB_RB_DRB1, &amp;pdcp_data_sdu.rb))
+    {
+        pdcp_data_sdu.rb-&gt;queue_pdcp_data_sdu(&amp;msg);
+        gw-&gt;msgq_to_pdcp-&gt;send(LTE_FDD_ENB_MESSAGE_TYPE_PDCP_DATA_SDU_READY, ...);
+    }
+}
+</code></pre>
+<p>TUN 设备的创建和配置（<code>open("/dev/net/tun")</code> + <code>TUNSETIFF</code> + <code>SIOCSIFADDR</code> 设 <code>ip_addr_start</code> + 拉起接口）在 <code>start()</code> 里（<code>LTE_fdd_enodeb/src/LTE_fdd_enb_gw.cc:122-176</code>）。注意 <code>IFF_NO_PI</code> 标志（<code>LTE_fdd_enodeb/src/LTE_fdd_enb_gw.cc:130</code>）意味着读写的就是裸 IP 包，没有额外头——所以上面可以直接 <code>memcpy</code> 出 <code>iphdr</code>。真实 LTE 里这段对应 S1-U 上 GTP-U 封装后发往 S-GW；这里用 TUN 把"核心网"折叠进了本机内核，理解数据面时把 TUN 设备脑补成 S-GW 即可。</p>
+<h2 id="构建系统谁链接谁"><a class="header" href="#构建系统谁链接谁">构建系统：谁链接谁</a></h2>
+<p>顶层 <code>CMakeLists.txt</code> 依次 <code>add_subdirectory</code> 七个组件（<code>CMakeLists.txt:160-166</code>），并在开头集中 <code>find_package</code> 了全部外部依赖：Boost、GNURadio 3.7、Osmosdr、UHD、LibbladeRF、FFTW3F、PolarSSL（<code>CMakeLists.txt:91-117</code>），缺任何一个直接 <code>FATAL_ERROR</code>。链接关系一张图：</p>
+<ul>
+<li><code>liblte/CMakeLists.txt:2-12</code>：库 <code>lte</code>（common/interface/phy/mac/rlc/pdcp/rrc/mme/security），外加一个 <code>liblte_common_test</code> 单测（<code>liblte/CMakeLists.txt:15-19</code>，顶层开了 <code>enable_testing()</code>，<code>CMakeLists.txt:27</code>）；</li>
+<li><code>libtools/CMakeLists.txt:2-7</code>：库 <code>tools</code>（四件套），include 了 <code>liblte/hdr</code>——因为 ipc_msgq 的消息结构里嵌了 <code>LIBLTE_PHY_*</code> 常量；</li>
+<li><code>LTE_fdd_enodeb/CMakeLists.txt:7-27</code>：可执行文件 <code>LTE_fdd_enodeb</code>，<code>target_link_libraries(... lte fftw3f tools pthread rt polarssl uhd bladerf boost gnuradio...)</code>，是所有库的汇点；</li>
+<li>其余四个目录（dl_scan / dl_file_scan / dl_file_gen / file_recorder）都只依赖 <code>lte</code> 加各自的 SDR 库。</li>
+</ul>
+<p>要把一个新模块加进构建，步骤是固定的：在顶层加 <code>find_package</code>（若有新外部依赖）和 <code>add_subdirectory</code>；在子目录 <code>CMakeLists.txt</code> 里 <code>add_executable</code>/<code>add_library</code>，<code>include_directories</code> 指向 <code>liblte/hdr</code>、<code>libtools/hdr</code>、<code>cmn_hdr</code>；<code>target_link_libraries</code> 按"应用链接 lte + tools，库之间不互链"的原则接上。enodeb 内部加新协议层则更轻：把 <code>.cc</code> 加进 <code>LTE_fdd_enodeb/CMakeLists.txt:8-26</code> 的源文件列表，在 <code>msgq.h</code> 里加消息类型，在 <code>handle_start()</code> 里加队列和 start 调用即可。</p>
+<h2 id="小结"><a class="header" href="#小结">小结</a></h2>
+<ul>
+<li><code>cmn_hdr/typedefs.h</code> 定义了全仓库的类型方言（<code>uint32</code> 等）和"枚举 + <code>_N_ITEMS</code> + <code>_text</code> 表"的风格约定。</li>
+<li><code>LIBLTE_BIT/BYTE_MSG_STRUCT</code>（<code>liblte_common.h</code>）是全仓库的消息集装箱，<code>liblte_value_2_bits</code>/<code>liblte_bits_2_value</code> 的"游标前移"API 是所有编解码的地基；band/EARFCN 表在隔壁 <code>liblte_interface</code>。</li>
+<li>libtools 四件套：scoped_lock 是手工版 <code>std::lock_guard</code>；socket_wrap 是控制台两个 TCP 端口的 select 服务器；ipc_msgq 是跨进程胖管道；helpers 负责字符串和数字互转。</li>
+<li>eNodeB 内部靠 13 条 <code>LTE_fdd_enb_msgq</code> 环形缓冲队列解耦；所有定时器挂在 PHY 的 1ms TTI 心跳上，无线停则定时器停。</li>
+<li>cnfg_db 用三个 map 存参数，<code>set_param</code> 负责级联（EARFCN→频率、带宽→RB 数）；配置文件和 telnet 命令复用同一条 <code>handle_write</code> 路径。</li>
+<li>radio 用 UHD 时间戳对齐收发并以 1ms 节奏驱动 PHY，采样率恒为带宽档位对应的 1.92~30.72 MHz；gw 用 TUN 设备代替 GTP-U，把数据面折叠进本机网络栈。</li>
+</ul>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../advanced/06-物理层与SDR应用.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../advanced/06-物理层与SDR应用.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>

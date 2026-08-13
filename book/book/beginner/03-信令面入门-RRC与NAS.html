@@ -1,0 +1,386 @@
+<!DOCTYPE HTML>
+<html lang="zh-CN" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>信令面入门：RRC 与 NAS - OpenLTE 源码精读：从入门到进阶</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">OpenLTE 源码精读：从入门到进阶</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/mgp25/OpenLTE" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="第-3-章-信令面入门rrc-与-nas"><a class="header" href="#第-3-章-信令面入门rrc-与-nas">第 3 章 信令面入门：RRC 与 NAS</a></h1>
+<p>前两章我们看了仓库结构和协议栈分层。这一章正式开始碰协议本身：LTE 控制面（信令面）上最重要的两个协议——<strong>RRC</strong> 和 <strong>NAS</strong>。</p>
+<p>先给你一张地图，免得在后面的消息名词里迷路：</p>
+<ul>
+<li><strong>RRC（Radio Resource Control，36.331）</strong>：UE 和 eNodeB 之间的协议。管的是"连接"——小区怎么选、无线信道怎么配、什么时候加密。</li>
+<li><strong>NAS（Non-Access Stratum，24.301）</strong>：UE 和核心网 MME 之间的协议。管的是"身份和业务"——你是谁（IMSI）、是不是合法用户（鉴权）、给你分什么 IP 承载。</li>
+</ul>
+<p>一个粗略但有用的类比：RRC 像 TCP，负责把"连接"这条管道架起来；NAS 像跑在这条管道上的 HTTP+OAuth，负责登录、发 token、开通业务。<strong>NAS 消息没有自己的空口通道，它被 RRC 消息当货物一样驮着走</strong>——这一点本章会反复看到。</p>
+<p>OpenLTE 里这两个协议的编解码分别在两份头文件里定义：</p>
+<ul>
+<li>RRC：<code>liblte/hdr/liblte_rrc.h</code>（6870 行，所有 RRC 消息的结构体和 pack/unpack 函数声明）</li>
+<li>NAS：<code>liblte/hdr/liblte_mme.h</code>（4252 行，所有 NAS 消息的结构体和函数声明）</li>
+</ul>
+<h2 id="一广播阶段mib-和-sib-是基站的开门招牌"><a class="header" href="#一广播阶段mib-和-sib-是基站的开门招牌">一、广播阶段：MIB 和 SIB 是基站的"开门招牌"</a></h2>
+<p>UE 一开机，还谁都不认识，它做的第一件事是扫频、同步，然后<strong>被动地听广播</strong>。基站不停循环广播两类系统消息：</p>
+<ul>
+<li><strong>MIB（Master Information Block）</strong>：每 40 ms 在 PBCH 上播一次，只有 24 个比特。内容是"我是 LTE 小区、下行带宽多少、PHICH 怎么配、当前帧号是多少"。</li>
+<li><strong>SIB1（System Information Block Type 1）</strong>：内容是"我属于哪些运营商（PLMN）、跟踪区码（TAC）是多少、允不允许接入"。UE 靠它做小区选择——相当于看到招牌上写着运营商名字，决定要不要进这家店。</li>
+</ul>
+<p>MIB 的结构体定义在 <code>liblte/hdr/liblte_rrc.h:6598</code>：</p>
+<pre><code class="language-c">typedef struct{
+    LIBLTE_RRC_PHICH_CONFIG_STRUCT phich_config;  // PHICH 配置
+    LIBLTE_RRC_DL_BANDWIDTH_ENUM   dl_bw;         // 下行带宽
+    uint8                          sfn_div_4;     // 系统帧号 / 4
+}LIBLTE_RRC_MIB_STRUCT;
+</code></pre>
+<p>字段布局（3GPP 36.331）：</p>
+<div class="table-wrapper"><table><thead><tr><th>字段</th><th>比特宽度</th><th>含义</th></tr></thead><tbody>
+<tr><td><code>dl_bw</code></td><td>3 bit</td><td>下行带宽枚举：n6/n15/n25/n50/n75/n100 对应 1.4/3/5/10/15/20 MHz</td></tr>
+<tr><td><code>phich_config</code></td><td>3 bit</td><td>PHICH 时长（1 bit）+ PHICH 资源（2 bit）</td></tr>
+<tr><td><code>sfn_div_4</code></td><td>8 bit</td><td>系统帧号 SFN 的高 8 位</td></tr>
+<tr><td>spare</td><td>10 bit</td><td>预留，填 0</td></tr>
+</tbody></table>
+</div>
+<p>加起来正好 24 bit。它的打包函数 <code>liblte_rrc_pack_bcch_bch_msg</code> 在 <code>liblte/src/liblte_rrc.cc:12966</code>，你可以看到代码就是把上表逐字段写进比特流，没有任何"类型标签"：</p>
+<pre><code class="language-c">liblte_value_2_bits(mib-&gt;dl_bw, &amp;msg_ptr, 3);                    // 行 12976
+liblte_rrc_pack_phich_config_ie(&amp;mib-&gt;phich_config, &amp;msg_ptr);   // 行 12979
+liblte_value_2_bits(mib-&gt;sfn_div_4, &amp;msg_ptr, 8);                // 行 12982
+liblte_value_2_bits(0, &amp;msg_ptr, 10);                            // 行 12985: spare
+</code></pre>
+<p>SIB1 比 MIB 信息量大多了，结构体 <code>LIBLTE_RRC_SYS_INFO_BLOCK_TYPE_1_STRUCT</code> 在 <code>liblte/hdr/liblte_rrc.h:5736</code>，里面装着 <code>plmn_id</code>（运营商列表）、<code>tracking_area_code</code>、<code>cell_barred</code>（是否禁止接入）、<code>q_rx_lev_min</code>（最低接入电平）这些小区选择的依据。对应的打包函数声明在 <code>liblte/hdr/liblte_rrc.h:5758</code>，实现在 <code>liblte/src/liblte_rrc.cc:10758</code>。</p>
+<p>这一阶段 UE 完全是"听众"，没发过一个比特。听懂了 MIB + SIB1，它才知道该往哪儿喊话。</p>
+<h2 id="二rrc-连接建立lte-版三次握手"><a class="header" href="#二rrc-连接建立lte-版三次握手">二、RRC 连接建立：LTE 版三次握手</a></h2>
+<p>UE 决定接入某个小区后，要先把 RRC 连接建起来。三步，和 TCP 三次握手几乎一一对应：</p>
+<div class="table-wrapper"><table><thead><tr><th>步骤</th><th>消息</th><th>方向</th><th>类比 TCP</th></tr></thead><tbody>
+<tr><td>1</td><td>RRCConnectionRequest</td><td>UE → eNodeB</td><td>SYN</td></tr>
+<tr><td>2</td><td>RRCConnectionSetup</td><td>eNodeB → UE</td><td>SYN+ACK</td></tr>
+<tr><td>3</td><td>RRCConnectionSetupComplete</td><td>UE → eNodeB</td><td>ACK</td></tr>
+</tbody></table>
+</div>
+<p><strong>第 1 步，RRCConnectionRequest</strong>：UE 自报家门。结构体在 <code>liblte/hdr/liblte_rrc.h:5976</code>：</p>
+<pre><code class="language-c">typedef struct{
+    LIBLTE_RRC_CON_REQ_UE_ID_UNION     ue_id;       // S-TMSI 或随机数
+    LIBLTE_RRC_CON_REQ_UE_ID_TYPE_ENUM ue_id_type;  // 用哪种 ID
+    LIBLTE_RRC_CON_REQ_EST_CAUSE_ENUM  cause;       // 建立原因
+}LIBLTE_RRC_CONNECTION_REQUEST_STRUCT;
+</code></pre>
+<ul>
+<li><code>ue_id</code>：一个二选一——老用户给 S-TMSI（上次附着时网络发的临时身份证），新用户只能给一个 40 bit 随机数。选哪种由 <code>ue_id_type</code> 标记（枚举定义在 <code>liblte/hdr/liblte_rrc.h:5945</code>）。</li>
+<li><code>cause</code>：建立原因，比如 <code>MO_SIGNALLING</code>（我要发信令）、<code>MO_DATA</code>（我要传数据）、<code>EMERGENCY</code>（紧急呼叫），枚举在 <code>liblte/hdr/liblte_rrc.h:5952</code>。</li>
+</ul>
+<p>整条消息只有 64 bit，打包函数在 <code>liblte/src/liblte_rrc.cc:11596</code>。</p>
+<p><strong>第 2 步，RRCConnectionSetup</strong>：基站答应接入，并给 UE 配置好 SRB1（Signaling Radio Bearer，信令无线承载——你可以理解为"信令专用的管道配置"）。结构体 <code>LIBLTE_RRC_CONNECTION_SETUP_STRUCT</code> 在 <code>liblte/hdr/liblte_rrc.h:5925</code>，核心就是一个 <code>rr_cnfg</code>（无线资源配置）。</p>
+<p><strong>第 3 步，RRCConnectionSetupComplete</strong>：UE 确认。重点来了——这条消息里<strong>夹带了第一条 NAS 消息</strong>。结构体在 <code>liblte/hdr/liblte_rrc.h:5902</code>：</p>
+<pre><code class="language-c">typedef struct{
+    LIBLTE_RRC_REGISTERED_MME_STRUCT registered_mme;   // 上次注册的 MME
+    LIBLTE_BYTE_MSG_STRUCT           dedicated_info_nas; // ← NAS 消息塞在这
+    uint8                            rrc_transaction_id;
+    uint8                            selected_plmn_id;
+    bool                             registered_mme_present;
+}LIBLTE_RRC_CONNECTION_SETUP_COMPLETE_STRUCT;
+</code></pre>
+<p>注意 <code>dedicated_info_nas</code> 的类型是 <code>LIBLTE_BYTE_MSG_STRUCT</code>——一个<strong>字节容器</strong>（定义在 <code>liblte/hdr/liblte_common.h:76</code>），而 RRC 自己用的是<strong>比特容器</strong> <code>LIBLTE_BIT_MSG_STRUCT</code>（<code>liblte/hdr/liblte_common.h:71</code>）。这个类型差异就是两种编码风格在代码里的投影，本章最后会展开。</p>
+<p>到这里，"连接"架好了，接下来的戏全是 NAS 的。</p>
+<h2 id="三nas-附着类比-oauth-颁-token"><a class="header" href="#三nas-附着类比-oauth-颁-token">三、NAS 附着：类比 OAuth 颁 token</a></h2>
+<p>附着（Attach）是 UE 向核心网"注册开机"的完整流程。把它类比成 OAuth 很好懂：</p>
+<div class="table-wrapper"><table><thead><tr><th>Attach 步骤</th><th>OAuth 类比</th></tr></thead><tbody>
+<tr><td>Attach Request（报 IMSI）</td><td>用户点"用 XX 登录"，带上身份</td></tr>
+<tr><td>Authentication Request/Response（RAND/AUTN 挑战应答）</td><td>输入密码/验证码，证明你是你</td></tr>
+<tr><td>Security Mode Command/Complete</td><td>握手完成，切到 HTTPS，后续全加密</td></tr>
+<tr><td>Attach Accept（发 GUTI + 建默认承载）</td><td>颁发 token + 开通会话</td></tr>
+</tbody></table>
+</div>
+<p>NAS 消息的类型编号在 <code>liblte/hdr/liblte_mme.h:2619</code> 起的一整段 <code>#define</code> 里，挑本条主线的几条：</p>
+<pre><code class="language-c">#define LIBLTE_MME_MSG_TYPE_ATTACH_REQUEST            0x41  // 行 2619
+#define LIBLTE_MME_MSG_TYPE_ATTACH_ACCEPT             0x42  // 行 2620
+#define LIBLTE_MME_MSG_TYPE_ATTACH_COMPLETE           0x43  // 行 2621
+#define LIBLTE_MME_MSG_TYPE_AUTHENTICATION_REQUEST    0x52  // 行 2633
+#define LIBLTE_MME_MSG_TYPE_AUTHENTICATION_RESPONSE   0x53  // 行 2634
+#define LIBLTE_MME_MSG_TYPE_SECURITY_MODE_COMMAND     0x5D  // 行 2639
+#define LIBLTE_MME_MSG_TYPE_SECURITY_MODE_COMPLETE    0x5E  // 行 2640
+</code></pre>
+<p>对应的消息结构体也都在同一个文件里：</p>
+<ul>
+<li><code>LIBLTE_MME_ATTACH_REQUEST_MSG_STRUCT</code>：<code>liblte/hdr/liblte_mme.h:2819</code>。里面装着 <code>eps_mobile_id</code>（IMSI 或 GUTI）、<code>ue_network_cap</code>（UE 支持的加密算法清单）、<code>esm_msg</code>（嵌套的一条 ESM PDN Connectivity Request），外加十几个带 <code>_present</code> 标志的可选字段——是 NAS 里最复杂的消息。</li>
+<li><code>LIBLTE_MME_AUTHENTICATION_REQUEST_MSG_STRUCT</code>：<code>liblte/hdr/liblte_mme.h:2914</code>。极简，只有三样：<code>nas_ksi</code>（密钥序号）、<code>rand[16]</code>、<code>autn[16]</code>——后两个就是网络发给 UE 的"挑战"，UE 用 USIM 卡里的密钥算出应答。</li>
+<li><code>LIBLTE_MME_SECURITY_MODE_COMMAND_MSG_STRUCT</code>：<code>liblte/hdr/liblte_mme.h:3252</code>。网络告诉 UE"从这条消息之后，我们改用这套算法加密 + 完整性保护"。</li>
+<li><code>LIBLTE_MME_ATTACH_ACCEPT_MSG_STRUCT</code>：<code>liblte/hdr/liblte_mme.h:2707</code>。核心是 <code>guti</code>（新发的临时身份，以后不用明着报 IMSI 了）和 <code>tai_list</code>（跟踪区列表），还有嵌套的 <code>esm_msg</code>（激活默认承载，相当于"给你分 IP"）。</li>
+</ul>
+<p>还有一个细节值得现在就知道：每条 NAS 消息的第一个字节同时装着<strong>安全头类型</strong>和<strong>协议鉴别符</strong>，定义在 <code>liblte/hdr/liblte_mme.h:2611-2618</code>。鉴权完成前是明文（<code>PLAIN_NAS</code>），完成后头字节标记改为"加密 + 完整性保护"——这就是上面"切 HTTPS"在字节层面的体现。</p>
+<h2 id="四全景ue-从开机到能上网"><a class="header" href="#四全景ue-从开机到能上网">四、全景：UE 从开机到能上网</a></h2>
+<p>把前面三节串起来，完整时序如下（OpenLTE 的 eNodeB 把 MME/HSS 的角色也模拟在进程内部）：</p>
+<pre><code> UE                          eNodeB (OpenLTE 进程)
+  │                               │
+  │◄══ MIB / SIB1 (广播，一直发) ══│   ① 选小区：听"招牌"
+  │                               │
+  │── RRCConnectionRequest ──────►│   ② RRC 三次握手
+  │◄───── RRCConnectionSetup ─────│     （类比 TCP SYN/SYN+ACK/ACK）
+  │── RRCConnectionSetupComplete ►│     内嵌 NAS: Attach Request
+  │     {NAS: AttachRequest}      │
+  │                               │   ③ 鉴权：挑战-应答
+  │◄═ DLInformationTransfer ══════│     （类比 OAuth 验证身份）
+  │   {NAS: AuthenticationReq}    │
+  │═ ULInformationTransfer ══════►│
+  │   {NAS: AuthenticationResp}   │
+  │                               │   ④ NAS 安全模式：切"HTTPS"
+  │◄═ {NAS: SecurityModeCommand} ═│
+  │═ {NAS: SecurityModeComplete} ►│
+  │                               │   ⑤ RRC 重配置：建数据承载 DRB
+  │◄═ RRCConnectionReconfig ══════│     内嵌 NAS: Attach Accept
+  │   {NAS: AttachAccept}         │     （发 GUTI ≈ 颁 token）
+  │═ RRCConnectionReconfigCompl ► │
+  │═ {NAS: AttachComplete} ══════►│   ⑥ 附着完成确认
+  │                               │
+  │◄══════ IP 数据包（用户面）════►│   可以上网了
+</code></pre>
+<p>注意 <code>DL/UL Information Transfer</code> 这两条 RRC 消息：它们是 NAS 的"快递箱"——NAS 消息没有自己的空口通道，在空口上全靠这两条 RRC 消息里的 <code>dedicated_info_nas</code> 字段透传，RRC 层只看箱子不拆包裹。</p>
+<h2 id="五rrc-和-nas-的分工"><a class="header" href="#五rrc-和-nas-的分工">五、RRC 和 NAS 的分工</a></h2>
+<p>一句话总结：<strong>RRC 管"连接"，NAS 管"身份和业务"</strong>。</p>
+<div class="table-wrapper"><table><thead><tr><th>维度</th><th>RRC（36.331）</th><th>NAS（24.301）</th></tr></thead><tbody>
+<tr><td>对端</td><td>UE ↔ eNodeB</td><td>UE ↔ MME（核心网）</td></tr>
+<tr><td>管什么</td><td>小区选择、无线承载、空口加密</td><td>附着、鉴权、身份、IP 承载</td></tr>
+<tr><td>状态机</td><td>IDLE / CONNECTED</td><td>Deregistered / Registered</td></tr>
+<tr><td>消息载体</td><td>直接走空口逻辑信道</td><td>被 RRC 消息透传</td></tr>
+<tr><td>类比</td><td>TCP（连接管理）</td><td>HTTP + OAuth（会话与身份）</td></tr>
+</tbody></table>
+</div>
+<p>在 OpenLTE 里这条分界线非常清晰：<code>liblte_rrc.cc</code> 是纯 RRC 编解码，<code>liblte_mme.cc</code> 是纯 NAS 编解码，两者只通过 <code>dedicated_info_nas</code> 这个字节缓冲区交接。</p>
+<h2 id="六预告两套编码风格"><a class="header" href="#六预告两套编码风格">六、预告：两套编码风格</a></h2>
+<p>最后留个钩子。RRC 和 NAS 虽然都是"结构体 → 字节流"，但用了两套截然不同的编码：</p>
+<ul>
+<li><strong>RRC 用 ASN.1 uPER</strong>：比特对齐，没有 tag、没有 length，字段一个挨一个按比特塞进流里。原因一句话：<strong>空口上每个比特都占频谱、耗功率，省到极致是刚需</strong>。所以 MIB 能压到 24 bit，RRCConnectionRequest 只有 64 bit。</li>
+<li><strong>NAS 用 TLV/IEI</strong>：字节对齐，可选字段前带一字节类型标签（IEI），变长字段带一字节长度。原因一句话：<strong>NAS 的消息体是驮在 RRC 里的，不直接占用"按比特计费"的空口资源</strong>，不必抠到比特级，换取的是好解析、好扩展。</li>
+</ul>
+<p>这就是为什么本章前面看到 <code>dedicated_info_nas</code> 用字节容器而 RRC 自己用比特容器。两套编码怎么逐字段写、怎么逐字段拆，是**进阶级第 1 章（ASN.1 uPER）<strong>和</strong>第 2 章（NAS TLV）**的主菜。</p>
+<h2 id="小结"><a class="header" href="#小结">小结</a></h2>
+<ul>
+<li>RRC（36.331）管 UE 与 eNodeB 之间的"连接"，NAS（24.301）管 UE 与 MME 之间的"身份和业务"；NAS 消息由 RRC 消息透传。</li>
+<li>广播阶段 UE 只听不说：MIB（24 bit，<code>liblte/hdr/liblte_rrc.h:6598</code>）给带宽和帧号，SIB1（<code>liblte/hdr/liblte_rrc.h:5736</code>）给 PLMN 和接入门槛。</li>
+<li>RRC 连接建立是三条消息（Request / Setup / SetupComplete），类比 TCP 三次握手；第三条里已经夹带了 NAS Attach Request。</li>
+<li>NAS 附着 = Attach Request → Authentication → Security Mode → Attach Accept，类比 OAuth 的验证身份、加密、颁 token；消息类型编号集中在 <code>liblte/hdr/liblte_mme.h:2619</code> 起。</li>
+<li>RRC 用比特对齐的 ASN.1 uPER，NAS 用字节对齐的 TLV；容器类型 <code>LIBLTE_BIT_MSG_STRUCT</code> / <code>LIBLTE_BYTE_MSG_STRUCT</code> 就是这个差异在代码里的投影，细节见进阶级第 1、2 章。</li>
+</ul>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../beginner/02-LTE网络与协议栈入门.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../beginner/04-动手实验指南.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../beginner/02-LTE网络与协议栈入门.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../beginner/04-动手实验指南.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>
