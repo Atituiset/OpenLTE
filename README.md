@@ -1,5 +1,7 @@
 # Open<img src="https://raw.githubusercontent.com/mgp25/OpenLTE/master/assets/lte.png" width=50>
 
+> 📖 源码精读文档（本 fork 自建，GitHub Pages）：<https://atituiset.github.io/OpenLTE/>
+
 OpenLTE is an open source implementation of the 3GPP LTE specifications. 
 
 This is a clone of [https://sourceforge.net/p/openlte](https://sourceforge.net/p/openlte).
